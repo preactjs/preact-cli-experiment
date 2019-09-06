@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"target": "es5",
+		"moduleResolution": "node",
+		"module": "commonjs",
+		"outDir": "dist",
+		"downlevelIteration": true,
+		"resolveJsonModule": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"esModuleInterop": true
+	},
+	"include": [
+		"src/**/*.ts"
+	]
+}
