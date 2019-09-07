@@ -27,9 +27,13 @@ export default class PluginAPI {
 		else this.debug = _debug(`@preact/cli:plugin:${id}`);
 	}
 
-	public setStatus(text?: string, type?: "info" | "error" | "success") {
+	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
 		if (text) {
 			switch (type) {
+				case "fatal":
+					this.spinner.fail(text);
+					process.exit(1);
+					break;
 				case "error":
 					this.spinner.fail(text);
 					break;
@@ -44,6 +48,10 @@ export default class PluginAPI {
 			}
 		} else if (type) {
 			switch (type) {
+				case "fatal":
+					this.spinner.fail();
+					process.exit(1);
+					break;
 				case "error":
 					this.spinner.fail();
 					break;
