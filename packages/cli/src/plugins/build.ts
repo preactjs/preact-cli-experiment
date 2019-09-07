@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 import chalk from "chalk";
-import program from "commander";
 import rimraf from "rimraf";
 
 import PluginAPI from "../api/plugin";
@@ -47,8 +46,11 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, stri
 				await promisify(rimraf)(dest);
 			}
 
+			const registry = await hookPlugins(argv.parent);
+			registry.invoke("build", argv);
+
 			try {
-				await runWebpack(api, argv, async config => (await hookPlugins(program)).hookWebpackChain(config));
+				await runWebpack(api, argv, config => registry.hookWebpackChain(config));
 			} catch (err) {
 				api.setStatus(`Error! ${err}`, "fatal");
 			}
