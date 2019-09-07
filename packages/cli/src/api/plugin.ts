@@ -115,38 +115,45 @@ async function applyTemplateRecursive(
 	context: Record<string, string>
 ): Promise<Record<string, string>> {
 	return new Promise((resolve, reject) => {
-		fs.stat(fileOrFolder, (err, stats) => {
-			if (err) reject(err);
-			else if (stats.isDirectory()) {
-				fs.readdir(fileOrFolder, (err, files) => {
+		fs.exists(fileOrFolder, exists => {
+			if (!exists) reject(new Error("File or folder '" + fileOrFolder + "' does not exist"));
+			else
+				fs.stat(fileOrFolder, (err, stats) => {
 					if (err) reject(err);
-					else {
-						debug("Reading files from directory %o: %O", fileOrFolder, files);
-						Promise.all(
-							files
-								.map(f => {
-									const joined = path.join(fileOrFolder, f);
-									if (path.isAbsolute(joined)) return joined;
-									return path.resolve(base, "./" + joined);
-								})
-								.map(file => applyTemplateRecursive(base, file, context))
-						)
-							.then(files => files.reduce((obj, file) => Object.assign(obj, file), {}))
-							.then(resolve)
-							.catch(reject);
+					else if (stats.isDirectory()) {
+						fs.readdir(fileOrFolder, (err, files) => {
+							if (err) reject(err);
+							else {
+								debug("Reading files from directory %o: %O", fileOrFolder, files);
+								Promise.all(
+									files
+										.map(f => {
+											const joined = path.join(fileOrFolder, f);
+											if (path.isAbsolute(joined)) return joined;
+											return path.resolve(base, "./" + joined);
+										})
+										.map(file => applyTemplateRecursive(base, file, context))
+								)
+									.then(files => files.reduce((obj, file) => Object.assign(obj, file), {}))
+									.then(resolve)
+									.catch(reject);
+							}
+						});
+					} else if (stats.isFile()) {
+						fs.readFile(fileOrFolder, (err, data) => {
+							if (err) reject(err);
+							else
+								resolve({
+									[path.relative(base, fileOrFolder)]: renderTemplate(data.toString(), context)
+								});
+						});
+					} else if (stats.isSymbolicLink()) {
+						fs.readlink(fileOrFolder, (err, link) => {
+							if (err) reject(err);
+							else resolve(applyTemplateRecursive(base, link, context));
+						});
 					}
 				});
-			} else if (stats.isFile()) {
-				fs.readFile(fileOrFolder, (err, data) => {
-					if (err) reject(err);
-					else resolve({ [path.relative(base, fileOrFolder)]: renderTemplate(data.toString(), context) });
-				});
-			} else if (stats.isSymbolicLink()) {
-				fs.readlink(fileOrFolder, (err, link) => {
-					if (err) reject(err);
-					else resolve(applyTemplateRecursive(base, link, context));
-				});
-			}
 		});
 	});
 }
