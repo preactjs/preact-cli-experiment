@@ -1,5 +1,5 @@
 import { dirname, resolve, normalize } from "path";
-import { statSync, readFile } from "fs";
+import { statSync, readFile, exists, stat } from "fs";
 
 import { CommanderStatic } from "commander";
 import chalk from "chalk";
@@ -69,6 +69,32 @@ export function normalizePath(input: string): string {
 
 export function clearConsole(soft: boolean) {
 	process.stdout.write(soft ? "\x1B[H\x1B[2J" : "\x1B[2J\x1B[3J\x1B[H\x1Bc");
+}
+
+export async function isFile(path: string): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		exists(path, exists => {
+			if (exists)
+				stat(path, (err, stats) => {
+					if (err) reject(err);
+					else resolve(stats.isFile());
+				});
+			else resolve(false);
+		});
+	});
+}
+
+export async function isDir(path: string): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		exists(path, exists => {
+			if (exists)
+				stat(path, (err, stats) => {
+					if (err) reject(err);
+					else resolve(stats.isDirectory());
+				});
+			else resolve(false);
+		});
+	});
 }
 
 export const hookPlugins = memoize(_hookPlugins);
