@@ -4,20 +4,20 @@ import { execAsync, memoize } from "../utils";
 export abstract class PackageManager {
 	name: string;
 	abstract getInstallCommand(): string;
-	abstract getAddCommand(...packages: string[]): string;
+	abstract getAddCommand(dev: boolean, ...packages: string[]): string;
 	abstract getRemoveCommand(...packages: string[]): string;
-	abstract getRunCommand(script: string): string;
+	abstract getRunCommand(script: string, extraArguments?: string): string;
 	async runInstall(options?: ExecOptions): Promise<ChildProcess> {
 		return execAsync(this.getInstallCommand(), options);
 	}
-	async runAdd(options: ExecOptions, ...packages: string[]) {
-		return execAsync(this.getAddCommand(...packages), options);
+	async runAdd(dev: boolean, options: ExecOptions, ...packages: string[]) {
+		return execAsync(this.getAddCommand(dev, ...packages), options);
 	}
 	async runRemove(options: ExecOptions, ...packages: string[]) {
 		return execAsync(this.getRemoveCommand(...packages), options);
 	}
-	async runScript(command: string, options?: ExecOptions) {
-		return execAsync(this.getRunCommand(command), options);
+	async runScript(command: string, extraArguments?: string, options?: ExecOptions) {
+		return execAsync(this.getRunCommand(command, extraArguments), options);
 	}
 }
 
@@ -27,14 +27,14 @@ class NPM extends PackageManager {
 	getInstallCommand(): string {
 		return "npm install";
 	}
-	getAddCommand(...packages: string[]): string {
-		return `npm i --save ${packages.join(" ")}`;
+	getAddCommand(dev: boolean, ...packages: string[]): string {
+		return `npm i ${dev ? "--save-dev" : "--save"} ${packages.join(" ")}`;
 	}
 	getRemoveCommand(...packages: string[]): string {
 		return `npm r --save ${packages.join(" ")}`;
 	}
-	getRunCommand(script: string): string {
-		return `npm run ${script}`;
+	getRunCommand(script: string, extraArguments = ""): string {
+		return `npm run ${extraArguments} ${script}`;
 	}
 }
 
@@ -44,14 +44,14 @@ class Yarn extends PackageManager {
 	getInstallCommand(): string {
 		return "yarn";
 	}
-	getAddCommand(...packages: string[]): string {
-		return `yarn add ${packages.join(" ")}`;
+	getAddCommand(dev: boolean, ...packages: string[]): string {
+		return `yarn add${dev ? " --dev" : ""} ${packages.join(" ")}`;
 	}
 	getRemoveCommand(...packages: string[]): string {
 		return `yarn remove ${packages.join(" ")}`;
 	}
-	getRunCommand(script: string): string {
-		return `yarn ${script}`;
+	getRunCommand(script: string, extraArguments = ""): string {
+		return `yarn ${extraArguments} ${script}`;
 	}
 }
 
