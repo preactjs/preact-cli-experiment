@@ -7,6 +7,8 @@ import chalk from "chalk";
 import { PluginRegistry } from "./api/registry";
 import { ChildProcess, exec } from "child_process";
 
+type PromiseValue<P extends Promise<any>> = P extends Promise<infer V> ? V : unknown;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getPackageJson(start: string): Promise<{ path: string; contents: any }> {
 	const full = resolve(process.cwd(), start);
@@ -33,20 +35,54 @@ export async function execAsync(command: string): Promise<ChildProcess> {
 	});
 }
 
-export async function hookPlugins(program: CommanderStatic) {
-	const {
-		path,
-		contents: { dependencies, devDependencies }
-	} = await getPackageJson(process.cwd());
+export function memoize<A extends Array<any>, R>(func: (...args: A) => R): (...args: A) => R {
+	const results: Array<[A, R]> = [];
+	return (...args: A) => {
+		const saved = results.find(r => Object.is(args, r[0]));
+		if (saved !== undefined) {
+			const result = func(...args);
+			results.push([args, result]);
+			return result;
+		}
+		return saved[1];
+	};
+}
 
-	const matchingDependencies = new Set(Object.keys(dependencies).filter(filterPluginDependencies));
-	if (matchingDependencies.size > 0) {
-		console.warn(chalk.yellow("WARNING") + ": CLI plugins should be added as development dependencies.");
+export function memoizeAsync<A extends Array<any>, R extends Promise<any>>(
+	func: (...args: A) => R
+): (...args: A) => Promise<PromiseValue<R>> {
+	const results: Array<[A, R]> = [];
+	return async (...args: A) => {
+		const saved = results.find(r => Object.is(args, r[0]));
+		if (saved !== undefined) {
+			const result = await func(...args);
+			results.push([args, result]);
+			return result;
+		}
+		return saved[1];
+	};
+}
+
+export const hookPlugins = memoize(_hookPlugins);
+
+async function _hookPlugins(program: CommanderStatic) {
+	try {
+		const {
+			path,
+			contents: { dependencies, devDependencies }
+		} = await getPackageJson(process.cwd());
+
+		const matchingDependencies = new Set(Object.keys(dependencies).filter(filterPluginDependencies));
+		if (matchingDependencies.size > 0) {
+			console.warn(chalk.yellow("WARNING") + ": CLI plugins should be added as development dependencies.");
+		}
+		Object.keys(devDependencies)
+			.filter(filterPluginDependencies)
+			.forEach(dep => matchingDependencies.add(dep));
+		return PluginRegistry.fromPlugins(path, program, [...matchingDependencies.values()]);
+	} catch (err) {
+		return new PluginRegistry();
 	}
-	Object.keys(devDependencies)
-		.filter(filterPluginDependencies)
-		.forEach(dep => matchingDependencies.add(dep));
-	return PluginRegistry.fromPlugins(path, program, [...matchingDependencies.values()]);
 }
 
 function filterPluginDependencies(dep: string) {

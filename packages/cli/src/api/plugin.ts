@@ -1,16 +1,17 @@
 import fs from "fs";
-import path from "path";
+import path, { join } from "path";
 import { Command, CommanderStatic, CommandOptions } from "commander";
 import _debug from "debug";
 import Config from "webpack-chain";
-import chalk from "chalk";
 import mkdirp from "mkdirp";
 
 type WebpackChainer = (webpack: Config) => void;
 
+const debug = _debug("@preact/cli:plugin");
+
 export default class PluginAPI {
 	private webpackChainers: WebpackChainer[];
-	private debug: _debug.Debugger;
+	public readonly debug: _debug.Debugger;
 	constructor(
 		private readonly base: string,
 		public readonly id: string,
@@ -18,7 +19,8 @@ export default class PluginAPI {
 		private commander: CommanderStatic
 	) {
 		this.webpackChainers = [];
-		this.debug = _debug(`plugin:${id}`);
+		if (debug.extend) this.debug = debug.extend(id);
+		else this.debug = _debug(`@preact/cli:plugin:${id}`);
 	}
 
 	public registerCommand(name: string, options?: CommandOptions): Command {
@@ -36,8 +38,8 @@ export default class PluginAPI {
 		base?: string
 	): Promise<Record<string, string>> {
 		const fullPath = path.resolve(process.cwd(), fileOrFolder);
-		this.debug(`Reading as template: ${chalk.grey(fullPath)}`);
-		return applyTemplateRecursive(base || this.base, fileOrFolder, Object.assign({}, process, context));
+		this.debug("Reading as template %o", fullPath);
+		return applyTemplateRecursive(base || this.base, fullPath, Object.assign({}, process, context));
 	}
 
 	public async writeFileTree(files: Record<string, string>, base?: string) {
@@ -71,18 +73,24 @@ async function applyTemplateRecursive(
 	return new Promise((resolve, reject) => {
 		fs.stat(fileOrFolder, (err, stats) => {
 			if (err) reject(err);
-			if (stats.isDirectory()) {
+			else if (stats.isDirectory()) {
 				fs.readdir(fileOrFolder, (err, files) => {
 					if (err) reject(err);
-					else
+					else {
+						debug("Reading files from directory %o: %O", fileOrFolder, files);
 						Promise.all(
 							files
-								.map(f => path.resolve(base, path.join(fileOrFolder, f)))
+								.map(f => {
+									const joined = path.join(fileOrFolder, f);
+									if (path.isAbsolute(joined)) return joined;
+									return path.resolve(base, "./" + joined);
+								})
 								.map(file => applyTemplateRecursive(base, file, context))
 						)
 							.then(files => files.reduce((obj, file) => Object.assign(obj, file), {}))
 							.then(resolve)
 							.catch(reject);
+					}
 				});
 			} else if (stats.isFile()) {
 				fs.readFile(fileOrFolder, (err, data) => {

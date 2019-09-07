@@ -24,7 +24,11 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 					"@preact/cli": "latest"
 				}
 			};
-			await api.writeFileTree({ "package.json": JSON.stringify(pkg, null, 2), "src/main.js": "" }, fullDir);
+			const templateBase = path.join(__dirname, "../../assets/baseProject");
+			const files = await api.applyTemplate(templateBase, {}, templateBase);
+			files["package.json"] = JSON.stringify(pkg, null, 2);
+			api.debug("Writing file tree: %O", files);
+			await api.writeFileTree(files, fullDir);
 			await execAsync(getPackageManager(packageManager).getInstallCommand());
 		});
 }

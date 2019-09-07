@@ -7,7 +7,7 @@ import { hookPlugins } from "./utils";
 import PluginAPI from "./api/plugin";
 import chalk from "chalk";
 
-const debug = _debug("cli");
+const debug = _debug("@preact/cli");
 
 program.version(version);
 
