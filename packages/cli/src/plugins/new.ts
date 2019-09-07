@@ -46,7 +46,11 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 			await api.writeFileTree(files, fullDir);
 			if (argv.install) {
 				api.setStatus("Installing plugins");
-				await pm.runInstall({ cwd });
+				try {
+					await pm.runInstall({ cwd: fullDir });
+				} catch (err) {
+					api.setStatus(`Error! ${err}`, "error");
+				}
 			}
 			api.setStatus("Created project in " + chalk.magenta(fullDir), "success");
 			api.setStatus(
@@ -57,7 +61,8 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 							.map(getPackageManager)
 							.map(pm => chalk.magenta(pm.getInstallCommand()))
 							.join(" or ")}`
-					: ""
+					: "",
+				"info"
 			);
 		});
 }
