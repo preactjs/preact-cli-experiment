@@ -139,8 +139,12 @@ async function applyTemplateRecursive(
 			} else if (stats.isFile()) {
 				fs.readFile(fileOrFolder, (err, data) => {
 					if (err) reject(err);
-					// TODO: Actually to templating
 					else resolve({ [path.relative(base, fileOrFolder)]: renderTemplate(data.toString(), context) });
+				});
+			} else if (stats.isSymbolicLink()) {
+				fs.readlink(fileOrFolder, (err, link) => {
+					if (err) reject(err);
+					else resolve(applyTemplateRecursive(base, link, context));
 				});
 			}
 		});
