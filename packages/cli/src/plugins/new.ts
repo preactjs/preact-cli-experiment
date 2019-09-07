@@ -41,7 +41,7 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 				templateBase
 			);
 			files["package.json"] = JSON.stringify(pkg, null, 2);
-			api.debug("Writing file tree: %O", files);
+			api.debug("Writing file tree: %O", Object.keys(files));
 			await api.writeFileTree(files, fullDir);
 			await pm.runInstall({ cwd });
 			api.setStatus("Created project in " + chalk.magenta(fullDir), "success");
