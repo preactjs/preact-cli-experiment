@@ -4,6 +4,7 @@ import mkdirp from "mkdirp";
 import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import chalk from "chalk";
+import { addScripts } from "../setup";
 
 export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>) {
 	api.registerCommand("new <name> [dir]")
@@ -16,10 +17,12 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
 			mkdirp.sync(fullDir);
 
+			const pm = getPackageManager(packageManager);
 			const pkg = {
 				name,
 				version: "0.1.0",
 				author: {},
+				scripts: addScripts(fullDir, pm),
 				dependencies: {
 					preact: "^10.0.0-rc.1"
 				},
@@ -33,11 +36,11 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 					"@babel/plugin-transform-react-jsx": "latest",
 					"fast-async": "latest",
 					"babel-plugin-macros": "latest",
-					"react-hot-loader": "latest"
+					"react-hot-loader": "latest",
+					"if-env": "latest"
 				}
 			};
 
-			const pm = getPackageManager(packageManager);
 			const templateBase = path.join(__dirname, "../../assets/baseProject");
 			const files = await api.applyTemplate(
 				templateBase,
