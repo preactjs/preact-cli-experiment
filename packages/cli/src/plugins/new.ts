@@ -21,12 +21,22 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 				version: "0.1.0",
 				author: {},
 				dependencies: {
-					preact: "^10.0.0-rc1"
+					preact: "^10.0.0-rc.1"
 				},
 				devDependencies: {
-					"@preact/cli": "latest"
+					"@babel/plugin-syntax-dynamic-import": "latest",
+					"@babel/plugin-transform-object-assign": "latest",
+					"@babel/plugin-proposal-decorators": "latest",
+					"@babel/plugin-proposal-class-properties": "latest",
+					"@babel/plugin-proposal-object-rest-spread": "latest",
+					"babel-plugin-transform-react-remove-prop-types": "latest",
+					"@babel/plugin-transform-react-jsx": "latest",
+					"fast-async": "latest",
+					"babel-plugin-macros": "latest",
+					"react-hot-loader": "latest"
 				}
 			};
+
 			const pm = getPackageManager(packageManager);
 			const templateBase = path.join(__dirname, "../../assets/baseProject");
 			const files = await api.applyTemplate(
@@ -53,16 +63,16 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 				}
 			}
 			api.setStatus("Created project in " + chalk.magenta(fullDir), "success");
-			api.setStatus(
-				"You can now start working on your project!\n" +
-					`\t${chalk.green("cd")} ${chalk.bold(path.relative(process.cwd(), fullDir))}` +
-					!argv.install
-					? `\n\tInstall dependencies with ${["npm", "yarn"]
-							.map(getPackageManager)
-							.map(pm => chalk.magenta(pm.getInstallCommand()))
-							.join(" or ")}`
-					: "",
-				"info"
-			);
+			api.setStatus("You can now start working on your project!", "info");
+			api.setStatus(`\t${chalk.green("cd")} ${chalk.magenta(path.relative(process.cwd(), fullDir))}`, "info");
+			if (!argv.install) {
+				api.setStatus(
+					`\tInstall dependencies with ${["npm", "yarn"]
+						.map(getPackageManager)
+						.map(pm => chalk.magenta(pm.getInstallCommand()))
+						.join(" or ")}`,
+					"info"
+				);
+			}
 		});
 }
