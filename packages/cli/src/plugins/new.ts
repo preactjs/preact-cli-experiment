@@ -7,6 +7,7 @@ import chalk from "chalk";
 
 export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>) {
 	api.registerCommand("new <name> [dir]")
+		.option("--no-install", "Disable installation after project generation")
 		.description("Creates a new Preact project")
 		.action(async (name: string, dir?: string, argv?: Record<string, any>) => {
 			cwd = argv && argv.cwd ? argv.cwd : cwd;
@@ -43,7 +44,20 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 			files["package.json"] = JSON.stringify(pkg, null, 2);
 			api.debug("Writing file tree: %O", Object.keys(files));
 			await api.writeFileTree(files, fullDir);
-			await pm.runInstall({ cwd });
+			if (argv.install) {
+				api.setStatus("Installing plugins");
+				await pm.runInstall({ cwd });
+			}
 			api.setStatus("Created project in " + chalk.magenta(fullDir), "success");
+			api.setStatus(
+				"You can now start working on your project!\n" +
+					`\t${chalk.green("cd")} ${chalk.bold(path.relative(process.cwd(), fullDir))}` +
+					!argv.install
+					? `\n\tInstall dependencies with ${["npm", "yarn"]
+							.map(getPackageManager)
+							.map(pm => chalk.magenta(pm.getInstallCommand()))
+							.join(" or ")}`
+					: ""
+			);
 		});
 }
