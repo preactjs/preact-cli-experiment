@@ -95,9 +95,13 @@ async function prodBuild(api: PluginAPI, env: WebpackEnvironment, transformer: W
 	if (env.prerender) {
 		const ssrConfig = (await normalizeMaybePromise(transformer(configServer(env)))).toConfig();
 		const serverCompiler = webpack(ssrConfig);
+		api.setStatus("Building server...");
+		api.setStatus();
 		await runCompiler(api, serverCompiler);
 	}
 	const clientCompiler = webpack(config);
+	api.setStatus("Building client...");
+	api.setStatus();
 	const stats = await runCompiler(api, clientCompiler);
 
 	// Timeout for plugins that work on `after-emit` event of webpack
