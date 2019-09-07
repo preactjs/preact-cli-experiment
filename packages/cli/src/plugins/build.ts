@@ -32,7 +32,7 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, stri
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
 						pm.getInstallCommand()
 					)} before continuing.`,
-					"error"
+					"fatal"
 				);
 			}
 			if (argv.brotli) {
