@@ -45,7 +45,7 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 			api.debug("Writing file tree: %O", Object.keys(files));
 			await api.writeFileTree(files, fullDir);
 			if (argv.install) {
-				api.setStatus("Installing plugins");
+				api.setStatus("Installing dependencies");
 				try {
 					await pm.runInstall({ cwd: fullDir });
 				} catch (err) {
