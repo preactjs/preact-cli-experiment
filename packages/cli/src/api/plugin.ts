@@ -76,10 +76,6 @@ export default class PluginAPI {
 		this.webpackChainers.push(chainer);
 	}
 
-	public dispose() {
-		this.spinner.stop;
-	}
-
 	public async applyTemplate(
 		fileOrFolder: string,
 		context: Record<string, string>,
