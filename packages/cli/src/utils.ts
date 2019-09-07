@@ -5,7 +5,7 @@ import { CommanderStatic } from "commander";
 import chalk from "chalk";
 
 import { PluginRegistry } from "./api/registry";
-import { ChildProcess, exec } from "child_process";
+import { ChildProcess, exec, ExecOptions } from "child_process";
 
 type PromiseValue<P extends Promise<any>> = P extends Promise<infer V> ? V : unknown;
 
@@ -26,9 +26,9 @@ export async function getPackageJson(start: string): Promise<{ path: string; con
 	throw new Error("Couldn't find any package.json file");
 }
 
-export async function execAsync(command: string): Promise<ChildProcess> {
+export async function execAsync(command: string, options?: ExecOptions): Promise<ChildProcess> {
 	return new Promise((resolve, reject) => {
-		const cp = exec(command, err => {
+		const cp = exec(command, options, err => {
 			if (err) reject(err);
 			else resolve(cp);
 		});

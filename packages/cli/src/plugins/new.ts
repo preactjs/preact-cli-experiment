@@ -3,7 +3,6 @@ import mkdirp from "mkdirp";
 
 import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
-import { execAsync } from "../utils";
 
 export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>) {
 	api.registerCommand("new <name> [dir]")
@@ -29,6 +28,6 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 			files["package.json"] = JSON.stringify(pkg, null, 2);
 			api.debug("Writing file tree: %O", files);
 			await api.writeFileTree(files, fullDir);
-			await execAsync(getPackageManager(packageManager).getInstallCommand());
+			await getPackageManager(packageManager).runInstall({ cwd });
 		});
 }

@@ -1,12 +1,27 @@
-export interface PackageManager {
+import { ChildProcess, ExecOptions } from "child_process";
+import { execAsync, memoize } from "../utils";
+
+export abstract class PackageManager {
 	name: string;
-	getInstallCommand(): string;
-	getAddCommand(...packages: string[]): string;
-	getRemoveCommand(...packages: string[]): string;
-	getRunCommand(script: string): string;
+	abstract getInstallCommand(): string;
+	abstract getAddCommand(...packages: string[]): string;
+	abstract getRemoveCommand(...packages: string[]): string;
+	abstract getRunCommand(script: string): string;
+	async runInstall(options?: ExecOptions): Promise<ChildProcess> {
+		return execAsync(this.getInstallCommand(), options);
+	}
+	async runAdd(options: ExecOptions, ...packages: string[]) {
+		return execAsync(this.getAddCommand(...packages), options);
+	}
+	async runRemove(options: ExecOptions, ...packages: string[]) {
+		return execAsync(this.getRemoveCommand(...packages), options);
+	}
+	async runScript(command: string, options?: ExecOptions) {
+		return execAsync(this.getRunCommand(command), options);
+	}
 }
 
-class NPM implements PackageManager {
+class NPM extends PackageManager {
 	name = "npm";
 
 	getInstallCommand(): string {
@@ -23,7 +38,7 @@ class NPM implements PackageManager {
 	}
 }
 
-class Yarn implements PackageManager {
+class Yarn extends PackageManager {
 	name = "yarn";
 
 	getInstallCommand(): string {
@@ -40,7 +55,9 @@ class Yarn implements PackageManager {
 	}
 }
 
-export function getPackageManager(name: string) {
+export const getPackageManager = memoize(_getPM);
+
+function _getPM(name: string) {
 	switch (name) {
 		case "yarn":
 			return new Yarn();
