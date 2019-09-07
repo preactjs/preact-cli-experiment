@@ -23,11 +23,13 @@ export async function runWebpack(
 	env.isProd = env.production;
 	env.isWatch = !!watch;
 	env.cwd = path.resolve(env.cwd || process.cwd());
-	api.debug("Environment: %O", env);
 
-	const src = path.resolve(env.cwd, env.src);
+	api.debug("Paths: src %o, cwd: %o", env.src, env.cwd);
+	const src = path.resolve(env.cwd, "src");
 	env.src = isDir(src) ? src : env.cwd;
 	env.source = (dir: string) => path.resolve(env.src, dir);
+	api.debug("Environment: %O", env);
+
 	return (watch ? devBuild : prodBuild)(api, env, transformer);
 }
 
