@@ -9,7 +9,8 @@
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"allowJs": true
 	},
 	"include": [
 		"src/**/*.ts"

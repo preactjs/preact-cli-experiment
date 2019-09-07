@@ -37,9 +37,10 @@ export class PluginRegistry {
 			debug(`Applying ${chalk.greenBright("webpack-chain")} functions for %o`, plugin.id);
 			plugin.getChains().forEach(chainer => chainer(config));
 		}
+		return config;
 	}
 
-	public invoke<A = unknown>(funcName: string, options: Record<string, object> = {}): (A | undefined)[] {
+	public invoke<A = void>(funcName: string, options: Record<string, object> = {}): (A | undefined)[] {
 		return [...this.registry.values()].map(plugin => {
 			const mod = require(plugin.importBase)[funcName];
 			debug("Invoking %o from plugin %o " + chalk.grey(!!mod ? "exists" : "doesn't exist"), funcName, plugin.id);
@@ -48,8 +49,15 @@ export class PluginRegistry {
 					cwd: process.env.PREACT_CLI_CWD || process.cwd(),
 					packageManager: process.env.PREACT_CLI_PACKAGE_MANAGER || "npm"
 				};
-				return mod(plugin, Object.assign({}, defaultOptions, options));
-			} else undefined;
+				try {
+					const result = mod(plugin, Object.assign({}, defaultOptions, options));
+					plugin.setStatus();
+					return result;
+				} catch (err) {
+					plugin.setStatus(`Plugin ${chalk.magenta(plugin.id)} error: ${err}`, "error");
+				}
+			}
+			return undefined;
 		});
 	}
 }

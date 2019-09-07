@@ -12,7 +12,7 @@ const debug = _debug("@preact/cli");
 program.version(version);
 
 hookPlugins(program).then(registry => {
-	["new"].forEach(name => {
+	["new", "build"].forEach(name => {
 		const importPath = require.resolve(resolve(__dirname, "plugins", name));
 		debug("Hooking internal plugin " + chalk.blue(name));
 		registry.add(

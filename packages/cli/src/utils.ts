@@ -1,4 +1,4 @@
-import { dirname, resolve } from "path";
+import { dirname, resolve, normalize } from "path";
 import { statSync, readFile } from "fs";
 
 import { CommanderStatic } from "commander";
@@ -39,7 +39,7 @@ export function memoize<A extends Array<any>, R>(func: (...args: A) => R): (...a
 	const results: Array<[A, R]> = [];
 	return (...args: A) => {
 		const saved = results.find(r => Object.is(args, r[0]));
-		if (saved !== undefined) {
+		if (saved === undefined) {
 			const result = func(...args);
 			results.push([args, result]);
 			return result;
@@ -54,13 +54,21 @@ export function memoizeAsync<A extends Array<any>, R extends Promise<any>>(
 	const results: Array<[A, R]> = [];
 	return async (...args: A) => {
 		const saved = results.find(r => Object.is(args, r[0]));
-		if (saved !== undefined) {
+		if (saved === undefined) {
 			const result = await func(...args);
 			results.push([args, result]);
 			return result;
 		}
 		return saved[1];
 	};
+}
+
+export function normalizePath(input: string): string {
+	return normalize(input).replace(/\\/g, "/");
+}
+
+export function clearConsole(soft: boolean) {
+	process.stdout.write(soft ? "\x1B[H\x1B[2J" : "\x1B[2J\x1B[3J\x1B[H\x1Bc");
 }
 
 export const hookPlugins = memoize(_hookPlugins);
