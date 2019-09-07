@@ -23,7 +23,7 @@ function clientConfiguration(
 ) {
 	config
 		.entry("bundle")
-		.add(path.resolve(__dirname, "./webpack-entry"))
+		.add(path.resolve(__dirname, "./entry"))
 		.end()
 		.entry("polyfills")
 		.add(path.resolve(__dirname, "./polyfills"))
