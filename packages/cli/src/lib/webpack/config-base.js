@@ -133,7 +133,7 @@ export default function configBase(env) {
 		.enforce("pre")
 		.test(/\.m?[tj]sx?$/)
 		.type("javascript/auto")
-		.merge({ resolve: [{ mainFields: ["module", "jsnext:main", "browser", "main"] }] })
+		.merge({ resolve: { mainFields: ["module", "jsnext:main", "browser", "main"] } })
 		.use("babel")
 		.loader("babel-loader")
 		.options(babelConfig);
@@ -168,7 +168,7 @@ export default function configBase(env) {
 			.use("style")
 			.loader("style-loader")
 			.options({ sourceMap: true });
-	else userCssRule.use("css-extract").merge(MiniCssExtractPlugin.loader);
+	else userCssRule.use("css-extract").loader(MiniCssExtractPlugin.loader);
 	userCssRule
 		.use("css")
 		.loader("css-loader")
@@ -197,7 +197,7 @@ export default function configBase(env) {
 			.use("style")
 			.loader("style-loader")
 			.options({ sourceMap: true });
-	else externalCssRule.use("css-extract").merge(MiniCssExtractPlugin.loader);
+	else externalCssRule.use("css-extract").loader(MiniCssExtractPlugin.loader);
 	externalCssRule
 		.use("css")
 		.loader("css-loader")
