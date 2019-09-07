@@ -8,7 +8,7 @@ import rimraf from "rimraf";
 import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import { runWebpack } from "../lib/webpack";
-import { hookPlugins } from "../utils";
+import { hookPlugins, isDir } from "../utils";
 
 export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, string>) {
 	api.registerCommand("build [src] [dest]")
@@ -27,7 +27,7 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, stri
 			Object.assign(argv, { src, dest, cwd });
 			const pm = getPackageManager(packageManager);
 			const modules = path.join(cwd, "node_modules");
-			if (!fs.statSync(modules).isDirectory()) {
+			if (isDir(modules)) {
 				api.setStatus(
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
 						pm.getInstallCommand()

@@ -7,7 +7,7 @@ import getPort from "get-port";
 import webpack from "webpack";
 import chalk from "chalk";
 import configClient from "./webpack/config-client";
-import { clearConsole } from "../utils";
+import { clearConsole, isDir } from "../utils";
 import PluginAPI from "../api/plugin";
 import configServer from "./webpack/config-server";
 
@@ -23,9 +23,10 @@ export async function runWebpack(
 	env.isProd = env.production;
 	env.isWatch = !!watch;
 	env.cwd = path.resolve(env.cwd || process.cwd());
+	api.debug("Environment: %O", env);
 
 	const src = path.resolve(env.cwd, env.src);
-	env.src = fs.statSync(src).isDirectory() ? src : env.cwd;
+	env.src = isDir(src) ? src : env.cwd;
 	env.source = (dir: string) => path.resolve(env.src, dir);
 	return (watch ? devBuild : prodBuild)(api, env, transformer);
 }
@@ -88,14 +89,13 @@ async function devBuild(api: PluginAPI, env: WebpackEnvironment, transformer: We
 }
 
 async function prodBuild(api: PluginAPI, env: WebpackEnvironment, transformer: WebpackTransformer) {
-	const config = await normalizeMaybePromise(transformer(configClient(env)));
+	const config = (await normalizeMaybePromise(transformer(configClient(env)))).toConfig();
 	if (env.prerender) {
-		const ssrConfig = await normalizeMaybePromise(transformer(configServer(env)));
-		const serverCompiler = webpack(ssrConfig.toConfig());
+		const ssrConfig = (await normalizeMaybePromise(transformer(configServer(env)))).toConfig();
+		const serverCompiler = webpack(ssrConfig);
 		await runCompiler(api, serverCompiler);
 	}
-
-	const clientCompiler = webpack(config.toConfig());
+	const clientCompiler = webpack(config);
 	const stats = await runCompiler(api, clientCompiler);
 
 	// Timeout for plugins that work on `after-emit` event of webpack
