@@ -47,6 +47,10 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, stri
 				await promisify(rimraf)(dest);
 			}
 
-			await runWebpack(api, argv, async config => (await hookPlugins(program)).hookWebpackChain(config));
+			try {
+				await runWebpack(api, argv, async config => (await hookPlugins(program)).hookWebpackChain(config));
+			} catch (err) {
+				api.setStatus(`Error! ${err}`, "fatal");
+			}
 		});
 }
