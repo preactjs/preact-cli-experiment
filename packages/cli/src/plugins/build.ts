@@ -14,20 +14,20 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, stri
 	api.registerCommand("build [src] [dest]")
 		.description("Build the current project into static files")
 		.option("--clean", "Removes destination folder before building", false)
-		.option("--dest", "Destination folder", "build")
+		.option("--dest <dir>", "Destination folder", "build")
 		.option("--no-prerender", "Don't prerender URLs")
 		.option("--production", "Sets the build as production build", false)
 		.option("--brotli", "Enable Brotli compression", false)
 		.action(async (src?: string, dest?: string, argv?: Record<string, any>) => {
-			api.debug("argv %O", argv);
 			cwd = argv && argv.cwd !== undefined ? argv.cwd : cwd;
-			src = src || cwd;
-			dest = dest || argv.dest || "build";
+			src = !!src ? path.join(cwd, src) : cwd;
+			dest = path.join(src, dest || argv.dest || "build");
+			api.debug("%o", { cwd, src, dest });
 			// Set new values back into argv object
 			Object.assign(argv, { src, dest, cwd });
 			const pm = getPackageManager(packageManager);
-			const modules = path.join(cwd, "node_modules");
-			if (isDir(modules)) {
+			const modules = path.resolve(src, "./node_modules");
+			if (!isDir(modules)) {
 				api.setStatus(
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
 						pm.getInstallCommand()
