@@ -24,11 +24,9 @@ export async function runWebpack(
 	env.isWatch = !!watch;
 	env.cwd = path.resolve(env.cwd || process.cwd());
 
-	api.debug("Paths: src %o, cwd: %o", env.src, env.cwd);
 	const src = path.resolve(env.cwd, "src");
 	env.src = isDir(src) ? src : env.cwd;
 	env.source = (dir: string) => path.resolve(env.src, dir);
-	api.debug("Environment: %O", env);
 
 	return (watch ? devBuild : prodBuild)(api, env, transformer);
 }
@@ -116,7 +114,7 @@ async function runCompiler(api: PluginAPI, compiler: webpack.Compiler): Promise<
 			showStats(api, stats);
 
 			if (err || (stats && stats.hasErrors())) {
-				reject("Build failed! " + err || "");
+				reject(new Error("Build failed! " + err || ""));
 			}
 
 			resolve(stats);
