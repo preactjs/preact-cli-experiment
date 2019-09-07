@@ -25,7 +25,7 @@ class NPM extends PackageManager {
 	name = "npm";
 
 	getInstallCommand(): string {
-		return "npm i";
+		return "npm install";
 	}
 	getAddCommand(...packages: string[]): string {
 		return `npm i --save ${packages.join(" ")}`;
