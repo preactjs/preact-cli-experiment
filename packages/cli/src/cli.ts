@@ -10,6 +10,18 @@ import chalk from "chalk";
 const debug = _debug("@preact/cli");
 
 program.version(version);
+program.option("--cwd <cwd>", "Sets working directory", process.env.PREACT_CLI_CWD || process.cwd());
+program.option("--pm <pm>", "Sets package manager", process.env.PREACT_CLI_PACKAGE_MANAGER || "npm");
+program.option("-d, --debug", "Activate debug options");
+
+program.on("option:debug", () => {
+	process.stdout.write(
+		`${chalk.magenta("WARNING!")} Debug mode is verbose and ${chalk.bold(
+			"will"
+		)} slow down the program as well as clogging down your stdout.`
+	);
+	_debug.enable("@preact/cli");
+});
 
 hookPlugins(program).then(registry => {
 	["new", "build"].forEach(name => {
