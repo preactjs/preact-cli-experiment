@@ -1,6 +1,13 @@
 const isESM = (filename: string) => /\.esm\.js$/.test(filename);
 const isMatch = (filename: string, condition: boolean) => isESM(filename) === condition;
 
+interface Manifest {
+	type: string;
+	weight: number;
+}
+
+type Dict<T> = Record<string, T>;
+
 export default function createLoadManifest(
 	assets: Array<string>,
 	isESMBuild = false,
@@ -27,21 +34,21 @@ export default function createLoadManifest(
 		}
 	}
 
-	const defaults = {
-			[mainCss]: {
-				type: "style",
-				weight: 1
-			},
-			[mainJs]: {
-				type: "script",
-				weight: 1
-			}
+	const defaults: Dict<Manifest> = {
+		[mainCss]: {
+			type: "style",
+			weight: 1
 		},
-		manifest = {
+		[mainJs]: {
+			type: "script",
+			weight: 1
+		}
+	},
+		manifest: Dict<Dict<Manifest>> = {
 			"/": defaults
 		};
 
-	let path: string, css: string, obj: Record<string, { type: string; weight: number }>;
+	let path: string, css: string, obj: Dict<Manifest>;
 	scripts.forEach((filename, idx) => {
 		css = styles[idx];
 		obj = Object.assign({}, defaults);

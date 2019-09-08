@@ -3,12 +3,16 @@
 	"version": "0.0.0",
 	"description": "Preact CLI",
 	"main": "dist/cli.js",
+	"types": "dist/index",
 	"author": "SolarLiner",
 	"license": "MIT",
 	"private": false,
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"dev": "DEBUG=* ts-node src/cli.ts",
-		"build": "tsc ."
+		"build": "tsc -b tsconfig.build.json"
 	},
 	"bin": "preact",
 	"dependencies": {

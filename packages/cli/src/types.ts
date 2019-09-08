@@ -17,9 +17,7 @@ export type WebpackEnvExtra = WebpackEnvironment<{
 	isProd: boolean;
 	isWatch: boolean;
 	src: string;
-	esm?: boolean;
-	pkg?: any;
-	sw?: any;
+	pkg: any;
 	source(src: string): string;
 	log(msg: string, mode?: "info" | "error" | "success" | "fata"): void;
 }>;

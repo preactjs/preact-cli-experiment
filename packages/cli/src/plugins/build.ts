@@ -7,14 +7,16 @@ import rimraf from "rimraf";
 import PluginAPI from "../api/plugin";
 import { runWebpack } from "../lib/webpack";
 import { hookPlugins, isDir } from "../utils";
-import { CLIArguments, CommandArguments } from "../types";
+import { CLIArguments, CommandArguments, WebpackEnvironment } from "../types";
 
 export type BuildArgv = CommandArguments<{
+	brotli: boolean;
 	clean: boolean;
 	dest: string;
+	esm: boolean;
 	prerender: boolean;
 	production: boolean;
-	brotli: boolean;
+	sw: boolean;
 }>;
 
 export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: number }>;
@@ -68,6 +70,8 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("watch [src]")
 		.description("Launch a dev server with hot-reload")
 		.option("--dest <folder>", "Destination folder", "build")
+		.option("--no-esm", "Don't output a ES2015 bundle")
+		.option("--no-sw", "Disable service worker generation")
 		.option("--clean", "Removes dest. folder before starting")
 		.option("-p, --port <number>", "Port to use", parseInt, "3000")
 		.action(async (src?: string, argv?: WatchArgv) => {
@@ -87,8 +91,8 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			const watchOptions = Object.assign(
-				{ log: api.setStatus, prerender: false, production: false, brotli: false },
+			const watchOptions: WebpackEnvironment<{}> = Object.assign(
+				{ log: api.setStatus, prerender: false, production: false, brotli: false, esm: false, sw: false },
 				argv,
 				opts
 			);

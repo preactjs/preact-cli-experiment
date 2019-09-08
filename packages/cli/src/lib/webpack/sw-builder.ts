@@ -3,15 +3,15 @@ import path from "path";
 import { DefinePlugin, Plugin, Compiler, SingleEntryPlugin } from "webpack";
 import BabelEsmPlugin from "babel-esm-plugin";
 import { WebpackEnvExtra } from "../../types";
+import { PluginClass } from "webpack-chain";
 
-export default class SWBuilderPlugin extends Plugin {
+export default class SWBuilderPlugin implements Plugin {
 	brotli_: boolean;
 	esm_: boolean;
 	src_: any;
 	log_: (msg: string, mode?: "info" | "error" | "success" | "fata") => void;
 
 	constructor(config: WebpackEnvExtra) {
-		super();
 		const { src, brotli, esm, log } = config;
 		this.brotli_ = brotli;
 		this.esm_ = esm;
@@ -42,7 +42,7 @@ export default class SWBuilderPlugin extends Plugin {
 					new BabelEsmPlugin({
 						filename: "[name]-esm.js",
 						excludedPlugins: ["BabelEsmPlugin", this.constructor.name],
-						beforeStartExecution: plugins => {
+						beforeStartExecution: (plugins: (PluginClass & { definitions: any })[]) => {
 							plugins.forEach(plugin => {
 								if (plugin.constructor.name === "DefinePlugin") {
 									if (!plugin.definitions)

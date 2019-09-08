@@ -1,7 +1,9 @@
 import utils from "loader-utils";
 import requireRelative from "require-relative";
+import { loader } from "webpack";
+import { RawSourceMap } from "source-map";
 
-export default function proxyLoader(source, map) {
+export default function proxyLoader(this: loader.LoaderContext, source: string | Buffer, map: RawSourceMap) {
 	const options = utils.getOptions(this);
 
 	// First run proxy-loader run
@@ -16,7 +18,7 @@ export default function proxyLoader(source, map) {
 	}
 	const proxyOptions = this.query.__proxy_loader__;
 
-	let loader;
+	let loader: loader.Loader;
 	try {
 		loader = requireRelative(proxyOptions.loader, proxyOptions.cwd);
 	} catch (e) {
@@ -27,8 +29,8 @@ export default function proxyLoader(source, map) {
 	return loader.call(this, source, map);
 }
 
-function swapOptions(loaderContext, newOptions) {
-	const copy = {};
+function swapOptions(loaderContext: loader.LoaderContext, newOptions: any) {
+	const copy: any = {};
 	let key = "";
 
 	for (key in newOptions) {

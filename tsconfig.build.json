@@ -10,7 +10,9 @@
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
 		"esModuleInterop": true,
-		"allowJs": true
+		"allowJs": true,
+		"sourceMap": true,
+		"baseUrl": "./packages"
 	},
 	"include": [
 		"src/**/*.ts"

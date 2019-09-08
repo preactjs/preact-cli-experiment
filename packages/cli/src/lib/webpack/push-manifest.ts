@@ -1,11 +1,11 @@
 import webpack from "webpack";
 import createLoadManifest from "./create-load-manifest";
+import { WebpackEnvExtra } from "../../types";
 
-export default class PushManifestPlugin extends webpack.Plugin {
-	isESMBuild_: any;
-	constructor(env: any = {}) {
-		super();
-		this.isESMBuild_ = env.esm;
+export default class PushManifestPlugin implements webpack.Plugin {
+	isESMBuild_: boolean;
+	constructor(env: Partial<WebpackEnvExtra> = {}) {
+		this.isESMBuild_ = Boolean(env.esm);
 	}
 	apply(compiler: webpack.Compiler) {
 		compiler.hooks.emit.tap("PushManifestPlugin", compilation => {

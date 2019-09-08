@@ -1,6 +1,6 @@
 import fs, { existsSync } from "fs";
 import path from "path";
-import Config from "webpack-chain";
+import Config, { PluginClass } from "webpack-chain";
 import { filter } from "minimatch";
 import webpack from "webpack";
 import CopyWebpackPlugin from "copy-webpack-plugin";
@@ -171,8 +171,8 @@ function production(config: Config, env: WebpackEnvExtra): Config {
 				filename: "[name].[chunkhash:5].esm.js",
 				chunkFilename: "[name].chunk.[chunkhash:5].esm.js",
 				excludedPlugins: ["BabelEsmPlugin", "SWBuilderPlugin"],
-				beforeStartExecution: (plugins, newConfig) => {
-					const babelPlugins = newConfig.plugins;
+				beforeStartExecution: (plugins: (PluginClass & { definitions: any })[], newConfig: any) => {
+					const babelPlugins: (string | string[])[] = newConfig.plugins;
 					newConfig.plugins = babelPlugins.filter(plugin => {
 						if (Array.isArray(plugin) && plugin[0].indexOf("fast-async") !== -1) {
 							return false;

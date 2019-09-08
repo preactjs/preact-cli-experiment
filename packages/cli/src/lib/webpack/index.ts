@@ -1,5 +1,7 @@
 import ip from "ip";
+import fs from "fs";
 import path from "path";
+import util from "util";
 import Config from "webpack-chain";
 import DevServer from "webpack-dev-server";
 import getPort from "get-port";
@@ -25,9 +27,19 @@ export async function runWebpack(
 	src = isDir(src) ? src : env.cwd;
 	const source = (dir: string) => path.resolve(src, dir);
 
+	const readFile = util.promisify(fs.readFile);
+	const packageFilepath = path.resolve(src, "./package.json");
+
 	return (watch ? devBuild : prodBuild)(
 		api,
-		Object.assign({}, env, { isProd, isWatch, cwd, src, source }) as WebpackEnvExtra,
+		Object.assign({}, env, {
+			isProd,
+			isWatch,
+			cwd,
+			src,
+			source,
+			pkg: JSON.parse((await readFile(packageFilepath)).toString())
+		}) as WebpackEnvExtra,
 		transformer
 	);
 }
@@ -57,7 +69,7 @@ async function devBuild(api: PluginAPI, env: WebpackEnvExtra, transformer: Webpa
 			const serverAddr = `${protocol}://${host}:${chalk.bold(port.toFixed())}`;
 			const localIpAddr = `${protocol}://${ip.address()}:${chalk.bold(port.toFixed())}`;
 
-			if (env.clear) clearConsole(true);
+			clearConsole(true);
 			if (stats.hasErrors()) {
 				api.setStatus("Build failed!", "error");
 			} else {
