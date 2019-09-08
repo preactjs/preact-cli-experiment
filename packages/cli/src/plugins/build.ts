@@ -56,7 +56,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			const buildOptions = Object.assign({}, argv, opts);
+			const buildOptions = Object.assign({ log: api.setStatus }, argv, opts);
 			registry.invoke("build", buildOptions);
 
 			try {
@@ -87,7 +87,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			const watchOptions = Object.assign({}, argv, opts);
+			const watchOptions = Object.assign({ log: api.setStatus }, argv, opts);
 			registry.invoke("watch", watchOptions);
 
 			try {
