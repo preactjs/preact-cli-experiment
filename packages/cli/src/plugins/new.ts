@@ -5,24 +5,25 @@ import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import chalk from "chalk";
 import { addScripts } from "../setup";
+import { CommandArguments } from "../types";
 
-export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>) {
+type Argv = CommandArguments<{ install: boolean }>;
+
+export function cli(api: PluginAPI) {
 	api.registerCommand("new <name> [dir]")
 		.option("--no-install", "Disable installation after project generation")
 		.description("Creates a new Preact project")
-		.action(async (name: string, dir?: string, argv?: Record<string, any>) => {
-			cwd = argv && argv.cwd ? argv.cwd : cwd;
+		.action(async (name: string, dir?: string, argv?: Argv) => {
 			if (!dir) dir = "./" + name;
-			const fullDir = path.resolve(cwd, dir);
+			const fullDir = path.resolve(argv.cw, dir);
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
 			mkdirp.sync(fullDir);
 
-			const pm = getPackageManager(packageManager);
 			const pkg = {
 				name,
 				version: "0.1.0",
 				author: {},
-				scripts: addScripts(fullDir, pm),
+				scripts: addScripts(fullDir, argv.pm),
 				dependencies: {
 					preact: "^10.0.0-rc.1"
 				},
@@ -46,11 +47,11 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 				templateBase,
 				{
 					name,
-					"npm-install": pm.getInstallCommand(),
-					"npm-run-dev": pm.getRunCommand("dev"),
-					"npm-run-build": pm.getRunCommand("build"),
-					"npm-run-serve": pm.getRunCommand("serve"),
-					"npm-run-test": pm.getRunCommand("test")
+					"npm-install": argv.pm.getInstallCommand(),
+					"npm-run-dev": argv.pm.getRunCommand("dev"),
+					"npm-run-build": argv.pm.getRunCommand("build"),
+					"npm-run-serve": argv.pm.getRunCommand("serve"),
+					"npm-run-test": argv.pm.getRunCommand("test")
 				},
 				templateBase
 			);
@@ -60,7 +61,7 @@ export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, any>
 			if (argv.install) {
 				api.setStatus("Installing dependencies");
 				try {
-					await pm.runInstall({ cwd: fullDir });
+					await argv.pm.runInstall({ cwd: fullDir });
 				} catch (err) {
 					api.setStatus(`Error! ${err}`, "error");
 				}

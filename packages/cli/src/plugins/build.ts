@@ -8,28 +8,35 @@ import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import { runWebpack } from "../lib/webpack";
 import { hookPlugins, isDir } from "../utils";
+import { CommandArguments } from "../types";
 
-export function cli(api: PluginAPI, { packageManager, cwd }: Record<string, string>) {
+export type Argv = CommandArguments<{
+	clean: boolean;
+	dest: string;
+	prerender: boolean;
+	production: boolean;
+	brotli: boolean;
+}>;
+
+export function cli(api: PluginAPI) {
 	api.registerCommand("build [src] [dest]")
 		.description("Build the current project into static files")
-		.option("--clean", "Removes destination folder before building", false)
+		.option("--clean", "Removes destination folder before building")
 		.option("--dest <dir>", "Destination folder", "build")
 		.option("--no-prerender", "Don't prerender URLs")
-		.option("--production", "Sets the build as production build", false)
-		.option("--brotli", "Enable Brotli compression", false)
-		.action(async (src?: string, dest?: string, argv?: Record<string, any>) => {
-			cwd = argv && argv.cwd !== undefined ? argv.cwd : cwd;
-			src = !!src ? path.join(cwd, src) : cwd;
-			dest = path.join(src, dest || argv.dest || "build");
-			api.debug("%o", { cwd, src, dest });
+		.option("--production", "Sets the build as production build")
+		.option("--brotli", "Enable Brotli compression")
+		.action(async (src?: string, dest?: string, argv?: Argv) => {
+			src = !!src ? path.join(argv.cwd, src) : argv.cwd;
+			dest = path.join(src, dest || argv.dest);
+			api.debug("%o", { src, dest });
 			// Set new values back into argv object
-			Object.assign(argv, { src, dest, cwd });
-			const pm = getPackageManager(packageManager);
+			Object.assign(argv, { src, dest });
 			const modules = path.resolve(src, "./node_modules");
 			if (!isDir(modules)) {
 				api.setStatus(
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
-						pm.getInstallCommand()
+						argv.pm.getInstallCommand()
 					)} before continuing.`,
 					"fatal"
 				);

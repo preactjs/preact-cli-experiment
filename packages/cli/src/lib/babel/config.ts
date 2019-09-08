@@ -1,18 +1,6 @@
-export default function createBabelConfig(
-	env: {
-		cwd?: string;
-		isProd?: boolean;
-		isWatch?: boolean;
-		src?: string;
-		source?: (src: string) => string;
-		dest?: string;
-		manifest?: any;
-		pkg?: any;
-		production?: boolean;
-		rhl?: boolean;
-	},
-	options: any = {}
-) {
+import { WebpackEnvironment } from "../webpack";
+
+export default function createBabelConfig(env: WebpackEnvironment & { rhl: boolean }, options: any = {}) {
 	const { production: isProd, rhl: isRHLEnabled } = env || {};
 
 	return {

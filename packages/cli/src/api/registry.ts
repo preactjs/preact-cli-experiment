@@ -12,16 +12,16 @@ export class PluginRegistry {
 	private registry: Map<string, PluginAPI>;
 
 	public static fromPlugins(base: string, commander: CommanderStatic, plugins: string[]) {
-		const registry = new PluginRegistry();
-		for (const plugin of plugins.map(name => {
-			const path = require.resolve(name);
-			debug("Resolving plugin %o to %o", plugin, path);
-			return new PluginAPI(base, name, path, commander);
-		})) {
-			registry.add(plugin);
-		}
-
-		return registry;
+		return plugins
+			.map(name => {
+				const path = require.resolve(name);
+				debug("Resolving plugin %o to %o", name, path);
+				return new PluginAPI(base, name, path, commander);
+			})
+			.reduce((registry, plugin) => {
+				registry.add(plugin);
+				return registry;
+			}, new PluginRegistry());
 	}
 	constructor() {
 		this.registry = new Map();
@@ -45,12 +45,8 @@ export class PluginRegistry {
 			const mod = require(plugin.importBase)[funcName];
 			debug("Invoking %o from plugin %o " + chalk.grey(!!mod ? "exists" : "doesn't exist"), funcName, plugin.id);
 			if (mod) {
-				const defaultOptions = {
-					cwd: process.env.PREACT_CLI_CWD || process.cwd(),
-					packageManager: process.env.PREACT_CLI_PACKAGE_MANAGER || "npm"
-				};
 				try {
-					const result = mod(plugin, Object.assign({}, defaultOptions, options));
+					const result = mod(plugin, Object.assign({}, options));
 					plugin.setStatus();
 					return result;
 				} catch (err) {

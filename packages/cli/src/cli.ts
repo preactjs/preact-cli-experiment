@@ -6,16 +6,17 @@ import { version } from "../package.json";
 import { hookPlugins } from "./utils";
 import PluginAPI from "./api/plugin";
 import chalk from "chalk";
+import { getPackageManager } from "./api/PackageManager";
 
 const debug = _debug("@preact/cli");
 
 program.version(version);
 program.option("--cwd <cwd>", "Sets working directory", process.env.PREACT_CLI_CWD || process.cwd());
-program.option("--pm <pm>", "Sets package manager", process.env.PREACT_CLI_PACKAGE_MANAGER || "npm");
+program.option("--pm <pm>", "Sets package manager", getPackageManager, process.env.PREACT_CLI_PACKAGE_MANAGER || "npm");
 program.option("-d, --debug", "Activate debug options");
 
 program.on("option:debug", () => {
-	process.stdout.write(
+	console.log(
 		`${chalk.magenta("WARNING!")} Debug mode is verbose and ${chalk.bold(
 			"will"
 		)} slow down the program as well as clogging down your stdout.`

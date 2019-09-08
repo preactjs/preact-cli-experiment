@@ -2,21 +2,13 @@ import path from "path";
 
 import Config from "webpack-chain";
 import configBase from "./config-base";
+import { WebpackEnvironment } from ".";
 
-export default function configServer(env: {
-	cwd?: string;
-	isProd?: boolean;
-	isWatch?: boolean;
-	src?: string;
-	source: ((src: string) => string) | ((src: string) => string);
-	dest: string;
-	manifest?: any;
-	pkg?: any;
-}) {
+export default function configServer(env: WebpackEnvironment) {
 	return serverConfiguration(configBase(env), env);
 }
 
-function serverConfiguration(config: Config, env: { source: (src: string) => string; dest: string }) {
+function serverConfiguration(config: Config, env: WebpackEnvironment) {
 	return config
 		.entry("ssr-bundle")
 		.add(env.source("index"))

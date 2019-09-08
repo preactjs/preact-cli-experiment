@@ -1,4 +1,3 @@
-import fs from "fs";
 import ip from "ip";
 import path from "path";
 import Config from "webpack-chain";
@@ -6,17 +5,18 @@ import DevServer from "webpack-dev-server";
 import getPort from "get-port";
 import webpack from "webpack";
 import chalk from "chalk";
-import configClient from "./webpack/config-client";
-import { clearConsole, isDir } from "../utils";
-import PluginAPI from "../api/plugin";
-import configServer from "./webpack/config-server";
+import configClient from "./config-client";
+import { clearConsole, isDir } from "../../utils";
+import PluginAPI from "../../api/plugin";
+import configServer from "./config-server";
+import { Argv } from "../../plugins/build";
 
-type WebpackEnvironment = any;
-type WebpackTransformer = (config: Config) => PromiseLike<Config> | Config;
+export type WebpackEnvironment = Argv & { isProd: boolean; isWatch: boolean; source: (src: string) => string };
+export type WebpackTransformer = (config: Config) => PromiseLike<Config> | Config;
 
 export async function runWebpack(
 	api: PluginAPI,
-	env: WebpackEnvironment,
+	env: Argv & Partial<WebpackEnvironment>,
 	transformer: WebpackTransformer,
 	watch = false
 ) {
@@ -28,7 +28,7 @@ export async function runWebpack(
 	env.src = isDir(src) ? src : env.cwd;
 	env.source = (dir: string) => path.resolve(env.src, dir);
 
-	return (watch ? devBuild : prodBuild)(api, env, transformer);
+	return (watch ? devBuild : prodBuild)(api, env as WebpackEnvironment, transformer);
 }
 
 async function devBuild(api: PluginAPI, env: WebpackEnvironment, transformer: WebpackTransformer) {
