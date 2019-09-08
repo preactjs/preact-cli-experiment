@@ -22,7 +22,7 @@ export default class PluginAPI {
 		private commander: CommanderStatic
 	) {
 		this.webpackChainers = [];
-		this.spinner = ora({ color: "magenta", prefixText: id, text: "Invoking plugin..." });
+		this.spinner = ora({ color: "magenta", prefixText: id });
 		if (debug.extend) this.debug = debug.extend(id);
 		else this.debug = _debug(`@preact/cli:plugin:${id}`);
 	}
