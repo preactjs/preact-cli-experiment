@@ -24,9 +24,9 @@ function clientConfiguration(config: Config, env: WebpackEnvExtra): Config {
 		.add(path.resolve(__dirname, "../../../assets/entry"))
 		.end()
 		.entry("polyfills")
-		.add(path.resolve(__dirname, "./polyfills"))
+		.add(path.resolve(__dirname, "../../../assets/polyfills"))
 		.end();
-	if (env.isProd) {
+	if (!env.isProd) {
 		config
 			.entry("bundle")
 			.add("webpack-dev-server/client")
