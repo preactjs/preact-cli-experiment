@@ -1,17 +1,15 @@
 import fs from "fs";
-import path, { join } from "path";
+import path from "path";
 import { Command, CommanderStatic, CommandOptions } from "commander";
 import _debug from "debug";
 import ora from "ora";
 import Config from "webpack-chain";
 import mkdirp from "mkdirp";
-import chalk from "chalk";
-import { CLIArguments } from "../types";
-import { or } from "ip";
+import { renderTemplate } from "../lib/template";
 
 type WebpackChainer = (webpack: Config) => void;
 
-const debug = _debug("@preact/cli:plugin");
+export const debug = _debug("@preact/cli:plugin");
 
 export default class PluginAPI {
 	public readonly debug: _debug.Debugger;
@@ -162,23 +160,4 @@ async function applyTemplateRecursive(
 				});
 		});
 	});
-}
-
-function renderTemplate(input: string, context: Record<string, string>): string {
-	const templateVar = (str: string) => new RegExp(`{{\\s?${str}\\s?}}`, "g");
-	const dict = new Map<RegExp, string>();
-	Object.keys(context).forEach(k => dict.set(templateVar(k), context[k]));
-
-	for (const item of dict.entries()) {
-		input = input.replace(item[0], item[1]);
-	}
-	if (debug.enabled) {
-		const match = input.match(/{{\s?([a-z\-_][a-z0-9\-_]*)\s?}}/gi);
-		if (match && match.length > 0) {
-			console.warn(
-				"The following variables weren't found: " + chalk.yellow([...new Set(match).values()].join(", "))
-			);
-		}
-	}
-	return input;
 }

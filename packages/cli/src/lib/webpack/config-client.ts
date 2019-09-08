@@ -4,21 +4,26 @@ import Config, { PluginClass } from "webpack-chain";
 import { filter } from "minimatch";
 import webpack from "webpack";
 import CopyWebpackPlugin from "copy-webpack-plugin";
+import CrittersPlugin from "critters-webpack-plugin";
 import OptimizeCssAssetsPlugin from "optimize-css-assets-webpack-plugin";
 import BabelEsmPlugin from "babel-esm-plugin";
+import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 import { InjectManifest } from "workbox-webpack-plugin";
 import TerserPlugin from "terser-webpack-plugin";
 import { normalizePath } from "../../utils";
 import configBase from "./config-base";
-import { WebpackEnvExtra } from "../../types";
+import { CommonWebpackEnv } from "./types";
 import PushManifestPlugin from "./push-manifest";
 import SWBuilderPlugin from "./sw-builder";
+import CompressionPlugin from "compression-webpack-plugin";
+import renderHTML from "./render-html";
 
-export default function configClient(env: WebpackEnvExtra) {
-	return clientConfiguration(configBase(env), env);
+export default async function configClient(env: CommonWebpackEnv): Promise<Config> {
+	const transformer = env.isProd ? productionConfig : developmentConfig;
+	return transformer(await renderHTML(babelEsmConfig(clientConfiguration(configBase(env), env), env), env), env);
 }
 
-function clientConfiguration(config: Config, env: WebpackEnvExtra): Config {
+function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 	config
 		.entry("bundle")
 		.add(path.resolve(__dirname, "../../../assets/entry"))
@@ -49,7 +54,8 @@ function clientConfiguration(config: Config, env: WebpackEnvExtra): Config {
 		.include.add(filter(env.source("routes") + "/{*,*/index}.{js,jsx,ts,tsx}") as any)
 		.add(filter(env.source("components") + "/{routes,async}/{*,*/index}.js,jsx,ts,tsx}") as any)
 		.end()
-		.use(require.resolve("@preact/async-loader"))
+		.use("async")
+		.loader(require.resolve("@preact/async-loader"))
 		.options({
 			name(filename: string) {
 				const relative = normalizePath(filename).replace(normalizePath(env.src), "");
@@ -86,7 +92,7 @@ function clientConfiguration(config: Config, env: WebpackEnvExtra): Config {
 		.end();
 }
 
-function babelEsmPlugin(config: Config, env: WebpackEnvExtra): Config {
+function babelEsmConfig(config: Config, env: CommonWebpackEnv): Config {
 	if (env.esm) {
 		config.plugin("esm").use(BabelEsmPlugin, [
 			{
@@ -119,7 +125,7 @@ function babelEsmPlugin(config: Config, env: WebpackEnvExtra): Config {
 	return config;
 }
 
-function production(config: Config, env: WebpackEnvExtra): Config {
+function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 	const limit = 200e3; // 200 kb
 
 	config.performance
@@ -205,9 +211,74 @@ function production(config: Config, env: WebpackEnvExtra): Config {
 	}
 	if (env.sw) {
 		config.plugin("sw-builder").use(SWBuilderPlugin, [config]);
+		config.plugin("inject-manifest").use(InjectManifest, [
+			{
+				swSrc: "sw.js",
+				include: [/index\.html$/, /\.js$/, /\.css$/, /\.(png|jpg)$/],
+				exclude: [/\.esm\.js$/]
+			}
+		]);
+	}
+
+	if (env.inlineCss) {
+		config.plugin("critters").use(CrittersPlugin);
+	}
+
+	if (env.analyze) {
+		config.plugin("bundle-analyzer").use(BundleAnalyzerPlugin);
+	}
+
+	if (env.brotli) {
+		config.plugin("compression").use(CompressionPlugin, [
+			{
+				filename: "[path].br[query]",
+				algorithm: "brotliCompress",
+				test: /\.esm\.js$/
+			}
+		]);
 	}
 
 	return config;
+}
+
+function developmentConfig(config: Config, env: CommonWebpackEnv): Config {
+	return config
+		.plugin("named-modules")
+		.use(webpack.NamedModulesPlugin)
+		.end()
+		.plugin("hmr")
+		.use(webpack.HotModuleReplacementPlugin)
+		.end()
+		.plugin("define")
+		.use(webpack.DefinePlugin, [
+			{
+				"process.env.ADD_SW": env.sw,
+				"process.env.RHL": "env.rhl" // TODO: Figure out what that is
+			}
+		])
+		.end()
+		.set("devServer", {
+			inline: true,
+			hot: true,
+			compress: true,
+			publicPath: "/",
+			contentBase: env.src,
+			https: false,
+			port: env.port || 3000,
+			host: process.env.HOST || "0.0.0.0",
+			// setup(app) {
+			// 	app.use(middleware);
+			// },
+			disableHostCheck: true,
+			historyApiFallback: true,
+			quiet: true,
+			clientLogLevel: "none",
+			overlay: false,
+			stats: "minimal",
+			watchOptions: {
+				ignored: [path.resolve(env.cwd, "build"), path.resolve(env.cwd, "node_modules")]
+			}
+		});
 }
 
 function cleanFilename(name: string) {

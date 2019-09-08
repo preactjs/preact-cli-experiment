@@ -2,7 +2,6 @@ import ip from "ip";
 import fs from "fs";
 import path from "path";
 import util from "util";
-import Config from "webpack-chain";
 import DevServer from "webpack-dev-server";
 import getPort from "get-port";
 import webpack from "webpack";
@@ -11,16 +10,18 @@ import configClient from "./config-client";
 import { clearConsole, isDir } from "../../utils";
 import PluginAPI from "../../api/plugin";
 import configServer from "./config-server";
-import { WebpackEnvironment, WebpackTransformer, WebpackEnvExtra } from "../../types";
+import { BuildArgv, WatchArgv } from "../../plugins/build";
+import { WebpackEnvironmentWatch, WebpackEnvironmentBuild } from "./types";
+import { WebpackEnvironment, WebpackTransformer } from "../../types";
 
 export async function runWebpack(
 	api: PluginAPI,
-	env: WebpackEnvironment<{}>,
+	env: WebpackEnvironment<WatchArgv | BuildArgv>,
 	transformer: WebpackTransformer,
 	watch = false
 ) {
-	const isProd = env.production;
 	const isWatch = !!watch;
+	const isProd = isWatch ? false : (env as WebpackEnvironment<BuildArgv>).production;
 	const cwd = path.resolve(env.cwd || process.cwd());
 
 	let src = path.resolve(env.cwd, "src");
@@ -30,24 +31,31 @@ export async function runWebpack(
 	const readFile = util.promisify(fs.readFile);
 	const packageFilepath = path.resolve(env.cwd, "./package.json");
 
-	return (watch ? devBuild : prodBuild)(
-		api,
-		Object.assign({}, env, {
-			isProd,
-			isWatch,
-			cwd,
-			src,
-			source,
-			pkg: JSON.parse((await readFile(packageFilepath)).toString())
-		}) as WebpackEnvExtra,
-		transformer
-	);
+	let manifest: any;
+	try {
+		manifest = JSON.parse(fs.readFileSync(source("manifest.json")).toString());
+	} catch (err) {}
+
+	const extra = {
+		isProd,
+		isWatch,
+		cwd,
+		src,
+		source,
+		manifest,
+		pkg: JSON.parse((await readFile(packageFilepath)).toString()),
+		log: api.setStatus
+	};
+	if (watch) {
+		return devBuild(api, Object.assign({}, env as WebpackEnvironment<WatchArgv>, extra), transformer);
+	} else {
+		return prodBuild(api, Object.assign({}, env as WebpackEnvironment<BuildArgv>, extra), transformer);
+	}
 }
 
-async function devBuild(api: PluginAPI, env: WebpackEnvExtra, transformer: WebpackTransformer) {
-	const config = await normalizeMaybePromise(transformer(configClient(env)));
-	const userPort = parseInt(process.env.PORT || config.get("devServer").port, 10) || 8080;
-	const port = await getPort({ port: userPort });
+async function devBuild(api: PluginAPI, env: WebpackEnvironmentWatch, transformer: WebpackTransformer) {
+	const config = await configClient(env).then(transformer);
+	const port = await getPort({ port: [env.port, 3000] });
 
 	const compiler = webpack(config.toConfig());
 
@@ -74,9 +82,9 @@ async function devBuild(api: PluginAPI, env: WebpackEnvExtra, transformer: Webpa
 				api.setStatus("Build failed!", "error");
 			} else {
 				api.setStatus("Compiled successfully!", "success");
-				if (userPort !== port) {
+				if (env.port !== port) {
 					api.setStatus(
-						`Port ${chalk.bold(userPort.toFixed())} is still in use, using ${chalk.bold(
+						`Port ${chalk.bold(env.port.toFixed())} is still in use, using ${chalk.bold(
 							port.toFixed()
 						)} instead`,
 						"info"
@@ -101,10 +109,15 @@ async function devBuild(api: PluginAPI, env: WebpackEnvExtra, transformer: Webpa
 	});
 }
 
-async function prodBuild(api: PluginAPI, env: WebpackEnvExtra, transformer: WebpackTransformer) {
-	const config = (await normalizeMaybePromise(transformer(configClient(env)))).toConfig();
+async function prodBuild(api: PluginAPI, env: WebpackEnvironmentBuild, transformer: WebpackTransformer) {
+	const config = await configClient(env)
+		.then(transformer)
+		.then(c => c.toConfig());
 	if (env.prerender) {
-		const ssrConfig = (await normalizeMaybePromise(transformer(configServer(env)))).toConfig();
+		const ssrConfig = await Promise.resolve(env)
+			.then(configServer)
+			.then(transformer)
+			.then(c => c.toConfig());
 		const serverCompiler = webpack(ssrConfig);
 		api.setStatus("Building server...");
 		api.setStatus();
@@ -127,7 +140,15 @@ async function runCompiler(api: PluginAPI, compiler: webpack.Compiler): Promise<
 			showStats(api, stats);
 
 			if (err || (stats && stats.hasErrors())) {
-				reject(new Error("Build failed! " + err || ""));
+				reject(
+					err ||
+						new Error(
+							"Build failed!\n" +
+								allFields(stats, "errors")
+									.map(stripLoaderPrefix)
+									.join("\n")
+						)
+				);
 			}
 
 			resolve(stats);
@@ -171,11 +192,6 @@ function allFields(stats: webpack.Stats, field: "errors" | "warnings", fields: s
 		});
 	}
 	return fields;
-}
-
-function normalizeMaybePromise<T>(val: PromiseLike<T> | T): PromiseLike<T> {
-	if ("then" in val) return val;
-	return Promise.resolve(val);
 }
 
 /** Removes all loaders from any resource identifiers found in a string */

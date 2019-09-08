@@ -40,7 +40,7 @@ export class PluginRegistry {
 		return config;
 	}
 
-	public invoke<A = void>(funcName: string, options: Record<string, object> = {}): (A | undefined)[] {
+	public invoke<A = void>(funcName: string, options: any = {}): (A | undefined)[] {
 		return [...this.registry.values()].map(plugin => {
 			const mod = require(plugin.importBase)[funcName];
 			debug("Invoking %o from plugin %o " + chalk.grey(!!mod ? "exists" : "doesn't exist"), funcName, plugin.id);

@@ -2,13 +2,13 @@ import path from "path";
 
 import Config from "webpack-chain";
 import configBase from "./config-base";
-import { WebpackEnvExtra } from "../../types";
+import { WebpackEnvironmentBuild } from "./types";
 
-export default function configServer(env: WebpackEnvExtra) {
+export default function configServer(env: WebpackEnvironmentBuild) {
 	return serverConfiguration(configBase(env), env);
 }
 
-function serverConfiguration(config: Config, env: WebpackEnvExtra) {
+function serverConfiguration(config: Config, env: WebpackEnvironmentBuild) {
 	return config
 		.entry("ssr-bundle")
 		.add(env.source("index"))

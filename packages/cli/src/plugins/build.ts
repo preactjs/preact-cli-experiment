@@ -7,16 +7,20 @@ import rimraf from "rimraf";
 import PluginAPI from "../api/plugin";
 import { runWebpack } from "../lib/webpack";
 import { hookPlugins, isDir } from "../utils";
-import { CLIArguments, CommandArguments, WebpackEnvironment } from "../types";
+import { CLIArguments, CommandArguments } from "../types";
 
 export type BuildArgv = CommandArguments<{
+	analyze: boolean;
 	brotli: boolean;
 	clean: boolean;
 	dest: string;
 	esm: boolean;
+	inlineCss: boolean;
 	prerender: boolean;
+	preload: boolean;
 	production: boolean;
 	sw: boolean;
+	template?: string;
 }>;
 
 export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: number }>;
@@ -24,11 +28,16 @@ export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: n
 export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("build [src]")
 		.description("Build the current project into static files")
+		.option("--analyze", "Analyze client bundle")
+		.option("--brotli", "Enable Brotli compression")
 		.option("--clean", "Removes destination folder before building")
 		.option("--dest <dir>", "Destination folder", "build")
-		.option("--no-prerender", "Don't prerender URLs")
+		.option("--preload", "Add preload attributes to assets")
 		.option("--production", "Sets the build as production build")
-		.option("--brotli", "Enable Brotli compression")
+		.option("--sw", "Generate and attach service workers")
+		.option("--template <path>", "Use a custom template to render the HTML", undefined)
+		.option("--no-inline-css", "Disable inlining of CSS")
+		.option("--no-prerender", "Don't prerender URLs")
 		.action(async (src?: string, argv?: BuildArgv) => {
 			const { cwd, pm } = opts;
 			src = src !== undefined ? path.join(cwd, src) : cwd;
@@ -58,13 +67,14 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			const buildOptions = Object.assign({ log: api.setStatus }, argv, opts);
+			const buildOptions = Object.assign({}, argv, opts);
 			registry.invoke("build", buildOptions);
 
 			try {
 				await runWebpack(api, buildOptions, config => registry.hookWebpackChain(config));
 			} catch (err) {
 				api.setStatus(`Error! ${err}`, "fatal");
+				if (api.debug.enabled) throw err;
 			}
 		});
 	api.registerCommand("watch [src]")
@@ -73,8 +83,9 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--no-esm", "Don't output a ES2015 bundle")
 		.option("--no-sw", "Disable service worker generation")
 		.option("--clean", "Removes dest. folder before starting")
-		.option("-p, --port <number>", "Port to use", parseInt, "3000")
+		.option("-p, --port <number>", "Port to use", parseInt, 3000)
 		.action(async (src?: string, argv?: WatchArgv) => {
+			api.debug("Watch argv %o", argv.port);
 			const { cwd, pm } = opts;
 			src = src !== undefined ? path.join(cwd, src) : cwd;
 			const dest = path.join(src, argv.dest);
@@ -91,8 +102,8 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			const watchOptions: WebpackEnvironment<{}> = Object.assign(
-				{ log: api.setStatus, prerender: false, production: false, brotli: false, esm: false, sw: false },
+			const watchOptions = Object.assign(
+				{ prerender: false, production: false, brotli: false, esm: false, sw: false },
 				argv,
 				opts
 			);
@@ -102,6 +113,9 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				await runWebpack(api, watchOptions, config => registry.hookWebpackChain(config), true);
 			} catch (err) {
 				api.setStatus(`Error! ${err}`, "error");
+				if (api.debug.enabled) {
+					throw err;
+				}
 			}
 		});
 }
