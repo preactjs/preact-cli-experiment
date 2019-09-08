@@ -29,7 +29,7 @@ export default class PluginAPI {
 	}
 
 	public getCLIOptions(): CLIArguments {
-		return this.commander.opts();
+		return this.commander.opts() as any;
 	}
 
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
