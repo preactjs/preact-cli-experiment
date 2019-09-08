@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/camelcase, @typescript-eslint/no-var-requires */
-declare const __webpack_public_path__: string;
-declare const module: NodeModule & { hot?: { accept(name: string, cb: () => void): void } };
+/* global __webpack_public_path__ */
 
 import { h, hydrate } from "preact";
 
-const interopDefault = (m: any) => (m && m.default ? m.default : m);
+const interopDefault = m => (m && m.default ? m.default : m);
 
 if (process.env.NODE_ENV === "development") {
 	// enable preact devtools
