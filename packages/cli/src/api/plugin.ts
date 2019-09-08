@@ -6,6 +6,7 @@ import ora from "ora";
 import Config from "webpack-chain";
 import mkdirp from "mkdirp";
 import chalk from "chalk";
+import { CLIArguments } from "../types";
 
 type WebpackChainer = (webpack: Config) => void;
 
@@ -25,6 +26,10 @@ export default class PluginAPI {
 		this.spinner = ora({ color: "magenta", prefixText: id });
 		if (debug.extend) this.debug = debug.extend(id);
 		else this.debug = _debug(id.startsWith("@preact/cli") ? id : `@preact/cli:plugin:${id}`);
+	}
+
+	public getCLIOptions(): CLIArguments {
+		return this.commander.opts();
 	}
 
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {

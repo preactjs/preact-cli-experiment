@@ -25,6 +25,8 @@ program.on("option:debug", () => {
 });
 
 hookPlugins(program).then(registry => {
+	const opts = program.opts();
+	debug("opts %O", opts);
 	["new", "build"].forEach(name => {
 		const importPath = require.resolve(resolve(__dirname, "plugins", name));
 		debug("Hooking internal plugin " + chalk.blue(name));
@@ -32,8 +34,6 @@ hookPlugins(program).then(registry => {
 			new PluginAPI(process.env.PREACT_CLI_CWD || process.cwd(), `@preact/cli:${name}`, importPath, program)
 		);
 	});
-	const opts = program.opts();
-	debug("opts %O", opts);
-	registry.invoke("cli", opts);
+	registry.invoke("cli");
 	program.parse(process.argv);
 });
