@@ -28,10 +28,6 @@ export default class PluginAPI {
 		else this.debug = _debug(id.startsWith("@preact/cli") ? id : `@preact/cli:plugin:${id}`);
 	}
 
-	public getCLIOptions(): CLIArguments {
-		return this.commander.opts() as any;
-	}
-
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
 		if (!this.spinner) this.spinner = ora({ color: "magenta", prefixText: this.id });
 		if (text) {

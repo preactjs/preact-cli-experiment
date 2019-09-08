@@ -17,7 +17,7 @@ export type Argv = CommandArguments<{
 	brotli: boolean;
 }>;
 
-export function cli(api: PluginAPI) {
+export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("build [src] [dest]")
 		.description("Build the current project into static files")
 		.option("--clean", "Removes destination folder before building")
@@ -26,7 +26,6 @@ export function cli(api: PluginAPI) {
 		.option("--production", "Sets the build as production build")
 		.option("--brotli", "Enable Brotli compression")
 		.action(async (src?: string, dest?: string, argv?: Argv) => {
-			const opts = api.getCLIOptions();
 			const { cwd, pm } = opts;
 			src = src !== undefined ? path.join(cwd, src) : cwd;
 			dest = path.join(src, dest || argv.dest);

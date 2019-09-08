@@ -25,6 +25,8 @@ program.on("option:debug", () => {
 });
 
 hookPlugins(program).then(registry => {
+	const argv = program.parseOptions(process.argv);
+	debug("parseOptions() = %O", argv);
 	const opts = program.opts();
 	debug("opts %O", opts);
 	["new", "build"].forEach(name => {
@@ -34,6 +36,6 @@ hookPlugins(program).then(registry => {
 			new PluginAPI(process.env.PREACT_CLI_CWD || process.cwd(), `@preact/cli:${name}`, importPath, program)
 		);
 	});
-	registry.invoke("cli");
-	program.parse(process.argv);
+	registry.invoke("cli", opts);
+	program.parse([...argv.args, ...argv.unknown]);
 });

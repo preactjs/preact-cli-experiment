@@ -9,12 +9,11 @@ import { CommandArguments, CLIArguments } from "../types";
 
 type Argv = CommandArguments<{ install: boolean }>;
 
-export function cli(api: PluginAPI) {
+export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 	api.registerCommand("new <name> [dir]")
 		.option("--no-install", "Disable installation after project generation")
 		.description("Creates a new Preact project")
 		.action(async (name: string, dir?: string, argv?: Argv) => {
-			const { cwd, pm } = api.getCLIOptions();
 			if (!dir) dir = "./" + name;
 			const fullDir = path.resolve(cwd, dir);
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
