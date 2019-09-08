@@ -9,7 +9,6 @@ import configClient from "./config-client";
 import { clearConsole, isDir } from "../../utils";
 import PluginAPI from "../../api/plugin";
 import configServer from "./config-server";
-import { Argv } from "../../plugins/build";
 import { WebpackEnvironment, WebpackTransformer, WebpackEnvExtra } from "../../types";
 
 export async function runWebpack(

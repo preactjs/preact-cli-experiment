@@ -9,7 +9,7 @@ import { runWebpack } from "../lib/webpack";
 import { hookPlugins, isDir } from "../utils";
 import { CLIArguments, CommandArguments } from "../types";
 
-export type Argv = CommandArguments<{
+export type BuildArgv = CommandArguments<{
 	clean: boolean;
 	dest: string;
 	prerender: boolean;
@@ -17,18 +17,20 @@ export type Argv = CommandArguments<{
 	brotli: boolean;
 }>;
 
+export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: number }>;
+
 export function cli(api: PluginAPI, opts: CLIArguments) {
-	api.registerCommand("build [src] [dest]")
+	api.registerCommand("build [src]")
 		.description("Build the current project into static files")
 		.option("--clean", "Removes destination folder before building")
 		.option("--dest <dir>", "Destination folder", "build")
 		.option("--no-prerender", "Don't prerender URLs")
 		.option("--production", "Sets the build as production build")
 		.option("--brotli", "Enable Brotli compression")
-		.action(async (src?: string, dest?: string, argv?: Argv) => {
+		.action(async (src?: string, argv?: BuildArgv) => {
 			const { cwd, pm } = opts;
 			src = src !== undefined ? path.join(cwd, src) : cwd;
-			dest = path.join(src, dest || argv.dest);
+			const dest = path.join(src, argv.dest);
 			api.debug("%o", { src, dest });
 			// Set new values back into argv object
 			Object.assign(argv, { src, dest });
@@ -54,12 +56,44 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			registry.invoke("build", argv);
+			const buildOptions = Object.assign({}, argv, opts);
+			registry.invoke("build", buildOptions);
 
 			try {
-				await runWebpack(api, Object.assign({}, argv, opts), config => registry.hookWebpackChain(config));
+				await runWebpack(api, buildOptions, config => registry.hookWebpackChain(config));
 			} catch (err) {
 				api.setStatus(`Error! ${err}`, "fatal");
+			}
+		});
+	api.registerCommand("watch [src]")
+		.description("Launch a dev server with hot-reload")
+		.option("--dest <folder>", "Destination folder", "build")
+		.option("--clean", "Removes dest. folder before starting")
+		.option("-p, --port <number>", "Port to use", parseInt, "3000")
+		.action(async (src?: string, argv?: WatchArgv) => {
+			const { cwd, pm } = opts;
+			src = src !== undefined ? path.join(cwd, src) : cwd;
+			const dest = path.join(src, argv.dest);
+			Object.assign(argv, { src, dest });
+
+			const modules = path.resolve(src, "./node_modules");
+			if (!isDir(modules)) {
+				api.setStatus(
+					`No 'node_modules' folder found! Please run ${chalk.magenta(
+						pm.getInstallCommand()
+					)} before continuing.`,
+					"fatal"
+				);
+			}
+
+			const registry = await hookPlugins(argv.parent);
+			const watchOptions = Object.assign({}, argv, opts);
+			registry.invoke("watch", watchOptions);
+
+			try {
+				await runWebpack(api, watchOptions, config => registry.hookWebpackChain(config), true);
+			} catch (err) {
+				api.setStatus(`Error! ${err}`, "error");
 			}
 		});
 }
