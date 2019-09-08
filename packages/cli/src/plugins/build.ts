@@ -27,7 +27,6 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--brotli", "Enable Brotli compression")
 		.action(async (src?: string, dest?: string, argv?: Argv) => {
 			const { cwd, pm } = opts;
-			api.debug("argv %O", [src, argv.dest, cwd]);
 			src = src !== undefined ? path.join(cwd, src) : cwd;
 			dest = path.join(src, dest || argv.dest);
 			api.debug("%o", { src, dest });
