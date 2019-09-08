@@ -5,17 +5,17 @@ import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import chalk from "chalk";
 import { addScripts } from "../setup";
-import { CommandArguments } from "../types";
+import { CommandArguments, CLIArguments } from "../types";
 
 type Argv = CommandArguments<{ install: boolean }>;
 
-export function cli(api: PluginAPI) {
+export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 	api.registerCommand("new <name> [dir]")
 		.option("--no-install", "Disable installation after project generation")
 		.description("Creates a new Preact project")
 		.action(async (name: string, dir?: string, argv?: Argv) => {
 			if (!dir) dir = "./" + name;
-			const fullDir = path.resolve(argv.cw, dir);
+			const fullDir = path.resolve(cwd, dir);
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
 			mkdirp.sync(fullDir);
 
@@ -23,7 +23,7 @@ export function cli(api: PluginAPI) {
 				name,
 				version: "0.1.0",
 				author: {},
-				scripts: addScripts(fullDir, argv.pm),
+				scripts: addScripts(fullDir, pm),
 				dependencies: {
 					preact: "^10.0.0-rc.1"
 				},
@@ -47,11 +47,11 @@ export function cli(api: PluginAPI) {
 				templateBase,
 				{
 					name,
-					"npm-install": argv.pm.getInstallCommand(),
-					"npm-run-dev": argv.pm.getRunCommand("dev"),
-					"npm-run-build": argv.pm.getRunCommand("build"),
-					"npm-run-serve": argv.pm.getRunCommand("serve"),
-					"npm-run-test": argv.pm.getRunCommand("test")
+					"npm-install": pm.getInstallCommand(),
+					"npm-run-dev": pm.getRunCommand("dev"),
+					"npm-run-build": pm.getRunCommand("build"),
+					"npm-run-serve": pm.getRunCommand("serve"),
+					"npm-run-test": pm.getRunCommand("test")
 				},
 				templateBase
 			);
@@ -61,7 +61,7 @@ export function cli(api: PluginAPI) {
 			if (argv.install) {
 				api.setStatus("Installing dependencies");
 				try {
-					await argv.pm.runInstall({ cwd: fullDir });
+					await pm.runInstall({ cwd: fullDir });
 				} catch (err) {
 					api.setStatus(`Error! ${err}`, "error");
 				}

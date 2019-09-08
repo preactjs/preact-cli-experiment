@@ -5,10 +5,9 @@ import chalk from "chalk";
 import rimraf from "rimraf";
 
 import PluginAPI from "../api/plugin";
-import { getPackageManager } from "../api/PackageManager";
 import { runWebpack } from "../lib/webpack";
 import { hookPlugins, isDir } from "../utils";
-import { CommandArguments } from "../types";
+import { CLIArguments, CommandArguments } from "../types";
 
 export type Argv = CommandArguments<{
 	clean: boolean;
@@ -18,7 +17,7 @@ export type Argv = CommandArguments<{
 	brotli: boolean;
 }>;
 
-export function cli(api: PluginAPI) {
+export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 	api.registerCommand("build [src] [dest]")
 		.description("Build the current project into static files")
 		.option("--clean", "Removes destination folder before building")
@@ -27,7 +26,8 @@ export function cli(api: PluginAPI) {
 		.option("--production", "Sets the build as production build")
 		.option("--brotli", "Enable Brotli compression")
 		.action(async (src?: string, dest?: string, argv?: Argv) => {
-			src = !!src ? path.join(argv.cwd, src) : argv.cwd;
+			api.debug("argv %O", [src, argv.dest, cwd]);
+			src = src !== undefined ? path.join(cwd, src) : cwd;
 			dest = path.join(src, dest || argv.dest);
 			api.debug("%o", { src, dest });
 			// Set new values back into argv object
@@ -36,7 +36,7 @@ export function cli(api: PluginAPI) {
 			if (!isDir(modules)) {
 				api.setStatus(
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
-						argv.pm.getInstallCommand()
+						pm.getInstallCommand()
 					)} before continuing.`,
 					"fatal"
 				);

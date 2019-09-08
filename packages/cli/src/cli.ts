@@ -32,6 +32,8 @@ hookPlugins(program).then(registry => {
 			new PluginAPI(process.env.PREACT_CLI_CWD || process.cwd(), `@preact/cli:${name}`, importPath, program)
 		);
 	});
-	registry.invoke("cli", program.opts());
+	const opts = program.opts();
+	debug("opts %O", opts);
+	registry.invoke("cli", opts);
 	program.parse(process.argv);
 });

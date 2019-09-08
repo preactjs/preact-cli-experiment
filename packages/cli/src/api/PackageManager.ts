@@ -57,7 +57,7 @@ class Yarn extends PackageManager {
 
 export const getPackageManager = memoize(_getPM);
 
-function _getPM(name: string) {
+function _getPM(name: string): PackageManager {
 	switch (name) {
 		case "yarn":
 			return new Yarn();

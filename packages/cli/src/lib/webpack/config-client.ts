@@ -3,13 +3,13 @@ import Config from "webpack-chain";
 import { filter } from "minimatch";
 import { normalizePath } from "../../utils";
 import configBase from "./config-base";
-import { WebpackEnvironment } from ".";
+import { WebpackEnvExtra } from "../../types";
 
-export default function configClient(env: WebpackEnvironment) {
+export default function configClient(env: WebpackEnvExtra) {
 	return clientConfiguration(configBase(env), env);
 }
 
-function clientConfiguration(config: Config, env: WebpackEnvironment) {
+function clientConfiguration(config: Config, env: WebpackEnvExtra) {
 	config
 		.entry("bundle")
 		.add(path.resolve(__dirname, "../../../assets/entry"))
