@@ -14,7 +14,7 @@ import { WebpackEnvironment, WebpackTransformer, WebpackEnvExtra } from "../../t
 
 export async function runWebpack(
 	api: PluginAPI,
-	env: WebpackEnvironment<void>,
+	env: WebpackEnvironment<{}>,
 	transformer: WebpackTransformer,
 	watch = false
 ) {

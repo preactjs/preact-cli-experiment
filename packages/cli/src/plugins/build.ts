@@ -17,7 +17,7 @@ export type Argv = CommandArguments<{
 	brotli: boolean;
 }>;
 
-export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
+export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("build [src] [dest]")
 		.description("Build the current project into static files")
 		.option("--clean", "Removes destination folder before building")
@@ -26,6 +26,7 @@ export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 		.option("--production", "Sets the build as production build")
 		.option("--brotli", "Enable Brotli compression")
 		.action(async (src?: string, dest?: string, argv?: Argv) => {
+			const { cwd, pm } = opts;
 			api.debug("argv %O", [src, argv.dest, cwd]);
 			src = src !== undefined ? path.join(cwd, src) : cwd;
 			dest = path.join(src, dest || argv.dest);
@@ -57,7 +58,7 @@ export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 			registry.invoke("build", argv);
 
 			try {
-				await runWebpack(api, argv, config => registry.hookWebpackChain(config));
+				await runWebpack(api, Object.assign({}, argv, opts), config => registry.hookWebpackChain(config));
 			} catch (err) {
 				api.setStatus(`Error! ${err}`, "fatal");
 			}
