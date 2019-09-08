@@ -28,7 +28,7 @@ export async function runWebpack(
 	const source = (dir: string) => path.resolve(src, dir);
 
 	const readFile = util.promisify(fs.readFile);
-	const packageFilepath = path.resolve(src, "./package.json");
+	const packageFilepath = path.resolve(env.cwd, "./package.json");
 
 	return (watch ? devBuild : prodBuild)(
 		api,
