@@ -17,15 +17,19 @@ export async function runWebpack(
 	transformer: WebpackTransformer,
 	watch = false
 ) {
-	env.isProd = env.production;
-	env.isWatch = !!watch;
-	env.cwd = path.resolve(env.cwd || process.cwd());
+	const isProd = env.production;
+	const isWatch = !!watch;
+	const cwd = path.resolve(env.cwd || process.cwd());
 
-	const src = path.resolve(env.cwd, "src");
-	env.src = isDir(src) ? src : env.cwd;
-	env.source = (dir: string) => path.resolve(env.src, dir);
+	let src = path.resolve(env.cwd, "src");
+	src = isDir(src) ? src : env.cwd;
+	const source = (dir: string) => path.resolve(src, dir);
 
-	return (watch ? devBuild : prodBuild)(api, env as WebpackEnvExtra, transformer);
+	return (watch ? devBuild : prodBuild)(
+		api,
+		Object.assign({}, env, { isProd, isWatch, cwd, src, source }) as WebpackEnvExtra,
+		transformer
+	);
 }
 
 async function devBuild(api: PluginAPI, env: WebpackEnvExtra, transformer: WebpackTransformer) {
