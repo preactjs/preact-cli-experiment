@@ -6,6 +6,11 @@
 	"author": "SolarLiner",
 	"license": "MIT",
 	"private": false,
+	"scripts": {
+		"dev": "DEBUG=* ts-node src/cli.ts",
+		"build": "tsc ."
+	},
+	"bin": "preact",
 	"dependencies": {
 		"@babel/core": "^7.5.5",
 		"@babel/plugin-proposal-class-properties": "^7.5.5",
