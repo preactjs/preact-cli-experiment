@@ -7,6 +7,7 @@ import Config from "webpack-chain";
 import mkdirp from "mkdirp";
 import chalk from "chalk";
 import { CLIArguments } from "../types";
+import { or } from "ip";
 
 type WebpackChainer = (webpack: Config) => void;
 
@@ -15,7 +16,7 @@ const debug = _debug("@preact/cli:plugin");
 export default class PluginAPI {
 	public readonly debug: _debug.Debugger;
 	private webpackChainers: WebpackChainer[];
-	private spinner: ora.Ora;
+	private spinner?: ora.Ora;
 	constructor(
 		private readonly base: string,
 		public readonly id: string,
@@ -23,7 +24,6 @@ export default class PluginAPI {
 		private commander: CommanderStatic
 	) {
 		this.webpackChainers = [];
-		this.spinner = ora({ color: "magenta", prefixText: id });
 		if (debug.extend) this.debug = debug.extend(id);
 		else this.debug = _debug(id.startsWith("@preact/cli") ? id : `@preact/cli:plugin:${id}`);
 	}
@@ -33,6 +33,7 @@ export default class PluginAPI {
 	}
 
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
+		if (!this.spinner) this.spinner = ora({ color: "magenta", prefixText: this.id });
 		if (text) {
 			switch (type) {
 				case "fatal":
