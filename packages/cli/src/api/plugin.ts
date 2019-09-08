@@ -24,7 +24,7 @@ export default class PluginAPI {
 		this.webpackChainers = [];
 		this.spinner = ora({ color: "magenta", prefixText: id });
 		if (debug.extend) this.debug = debug.extend(id);
-		else this.debug = _debug(`@preact/cli:plugin:${id}`);
+		else this.debug = _debug(id.startsWith("@preact/cli") ? id : `@preact/cli:plugin:${id}`);
 	}
 
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
