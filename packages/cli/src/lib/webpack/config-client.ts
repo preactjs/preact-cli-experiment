@@ -23,7 +23,7 @@ function clientConfiguration(
 ) {
 	config
 		.entry("bundle")
-		.add(path.resolve(__dirname, "./entry"))
+		.add(path.resolve(__dirname, "../../../assets/entry"))
 		.end()
 		.entry("polyfills")
 		.add(path.resolve(__dirname, "./polyfills"))
