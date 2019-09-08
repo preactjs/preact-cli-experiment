@@ -87,7 +87,11 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const registry = await hookPlugins(argv.parent);
-			const watchOptions = Object.assign({ log: api.setStatus }, argv, opts);
+			const watchOptions = Object.assign(
+				{ log: api.setStatus, prerender: false, production: false, brotli: false },
+				argv,
+				opts
+			);
 			registry.invoke("watch", watchOptions);
 
 			try {
