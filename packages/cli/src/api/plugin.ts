@@ -5,6 +5,7 @@ import _debug from "debug";
 import ora from "ora";
 import Config from "webpack-chain";
 import mkdirp from "mkdirp";
+import inquirer from "inquirer";
 import { renderTemplate } from "../lib/template";
 
 type WebpackChainer = (webpack: Config) => void;
@@ -15,6 +16,7 @@ export default class PluginAPI {
 	public readonly debug: _debug.Debugger;
 	private webpackChainers: WebpackChainer[];
 	private spinner?: ora.Ora;
+	private promptModule: inquirer.PromptModule;
 	constructor(
 		private readonly base: string,
 		public readonly id: string,
@@ -24,6 +26,11 @@ export default class PluginAPI {
 		this.webpackChainers = [];
 		if (debug.extend) this.debug = debug.extend(id);
 		else this.debug = _debug(id.startsWith("@preact/cli") ? id : `@preact/cli:plugin:${id}`);
+		this.promptModule = inquirer.createPromptModule();
+	}
+
+	public get prompt() {
+		return this.promptModule;
 	}
 
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
