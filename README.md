@@ -47,6 +47,38 @@ Each exported function is used with the following signature:
 function hook(api: PluginAPI, opts: CLIArguments /* Can also include more properties depending on the hook */): any {}
 ```
 
+### List of available hooks
+
+#### `cli`
+
+Gets called on CLI startup.
+
+```typescript
+function cli(api: PluginAPI, opts: CLIArguments): void {}
+```
+
+### `build`
+
+Gets called at the start of the build step.s
+
+```typescript
+interface BuildArgv {
+	analyze: boolean;
+	brotli: boolean;
+	clean: boolean;
+	dest: string;
+	esm: boolean;
+	inlineCss: boolean;
+	prerender: boolean;
+	preload: boolean;
+	production: boolean;
+	sw: boolean;
+	template?: string;
+}
+
+function build(api: PluginAPI, opts: CLIArguments & BuildArgv): void;
+```
+
 ### `PluginAPI` instance
 
 The Plugin API object is a class instance that's shared between hooks, though a shared state cannot be saved there.
