@@ -101,9 +101,16 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				);
 			}
 
+			// TODO(solarliner): ⚠ INTERNAL ⚠ Will be replaced by a public call - this function is not exported
 			const registry = await hookPlugins(argv.parent);
 			const watchOptions = Object.assign(
-				{ prerender: false, production: false, brotli: false, esm: false, sw: false },
+				{
+					prerender: false,
+					production: false,
+					brotli: false,
+					esm: false,
+					sw: false
+				},
 				argv,
 				opts
 			);
