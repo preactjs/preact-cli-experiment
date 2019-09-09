@@ -160,10 +160,10 @@ const sources = {
 	"routes/prodile/solarliner.jsx": createRoute("profile", "solarliner")
 }
 api.writeFileTree(files, "src");
+```
 
 #### `getChains(): WebpackChainer[]`
 
 **WARNING**: Internal function.
 
 Returns an array of all defined `webpack-chain` transform functions by the plugin.
-```
