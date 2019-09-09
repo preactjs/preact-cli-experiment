@@ -57,7 +57,7 @@ Gets called on CLI startup.
 function cli(api: PluginAPI, opts: CLIArguments): void {}
 ```
 
-### `build`
+#### `build`
 
 Gets called at the start of the build step.s
 
