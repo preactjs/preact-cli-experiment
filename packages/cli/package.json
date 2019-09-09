@@ -2,8 +2,8 @@
 	"name": "@preact/cli",
 	"version": "0.0.0",
 	"description": "Preact CLI",
-	"main": "dist/cli.js",
-	"types": "dist/index",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"author": "SolarLiner",
 	"license": "MIT",
 	"private": false,
@@ -14,7 +14,9 @@
 		"dev": "DEBUG=*,-babel ts-node src/cli.ts",
 		"build": "tsc -b tsconfig.build.json"
 	},
-	"bin": "preact",
+	"bin": {
+		"preact": "dist/cli.js"
+	},
 	"dependencies": {
 		"@babel/core": "^7.5.5",
 		"@babel/plugin-proposal-class-properties": "^7.5.5",
