@@ -98,11 +98,40 @@ api.chainWebpack(config => config.plugin("terser").use(TerserPlugin, [terserOpti
 Renders a file or folder template into the project. Returns an object with relative filenames as keys, and file contents as values, to be passed to `writeFileTree` to write to disk.
 
 -   `fileOrFolder` is the file or folder to render; is relative to `base` or absolute.
--   `context` is an object containing template variables as keys and their content as values.
--   `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the project root. When unspecified, it is the
+-   `context` is an object containing template variables as keys and their content as values. This context gets merged with a default context which contains the environment variables as `€nv` and the current working directory as `cwd`.
+-   `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the project root. When unspecified, it is the project directory.
 
 **Example**:
 
+See [The `build` command](packages/cli/src/plugins/build.ts) for an example of plugin using `applyTemplate`.
+
+#### `async writeFileTree(files: Record<string, string>, base?: string)`
+
+Writes the given object to disk, relative to `base`.
+
+-   `files` is a dictionary of relative path keys and content values (like the object returned by `applyTemplate`) to write to disk.
+-   `base` is the base directory from which all relatives files are mapped to. If unspecified, it is the project directory. If relative, it is relative to the project directory.
+
+**Example**
+
 ```typescript
-//
+const project = {
+	"package.json" : JSON.stringify(pkg, null, 2),
+	"README.md": generateReadme();
+	"src/index.js": createEntrypoint({name: "foobar"})
+};
+api.writeFileTree(project);
+
+const sources = {
+	"routes/index.jsx": createRoute("index"),
+	"routes/profile/index.jsx": createRoute("profile", "developit"),
+	"routes/prodile/solarliner.jsx": createRoute("profile", "solarliner")
+}
+api.writeFileTree(files, "src");
+
+#### `getChains(): WebpackChainer[]`
+
+**WARNING**: Internal function.
+
+Returns an array of all defined `webpack-chain` transform functions by the plugin.
 ```

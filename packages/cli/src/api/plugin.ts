@@ -81,16 +81,15 @@ export default class PluginAPI {
 		context: Record<string, string>,
 		base?: string
 	): Promise<Record<string, string>> {
-		const fullPath = path.resolve(process.cwd(), fileOrFolder);
-		this.debug("Reading as template %o", fullPath);
 		return applyTemplateRecursive(
 			base || this.base,
-			fullPath,
+			fileOrFolder,
 			Object.assign({}, { env: process.env, cwd: process.cwd() }, context)
 		);
 	}
 
 	public async writeFileTree(files: Record<string, string>, base?: string) {
+		if (base && !path.isAbsolute(base)) base = path.join(this.base, base);
 		return Promise.all(
 			Object.keys(files).map(file => {
 				const fullPath = path.join(base || this.base, file);
@@ -118,21 +117,22 @@ async function applyTemplateRecursive(
 	fileOrFolder: string,
 	context: Record<string, string>
 ): Promise<Record<string, string>> {
+	const fullPath = path.isAbsolute(fileOrFolder) ? fileOrFolder : path.join(base, fileOrFolder);
 	return new Promise((resolve, reject) => {
-		fs.exists(fileOrFolder, exists => {
-			if (!exists) reject(new Error("File or folder '" + fileOrFolder + "' does not exist"));
+		fs.exists(fullPath, exists => {
+			if (!exists) reject(new Error("File or folder '" + fullPath + "' does not exist"));
 			else
-				fs.stat(fileOrFolder, (err, stats) => {
+				fs.stat(fullPath, (err, stats) => {
 					if (err) reject(err);
 					else if (stats.isDirectory()) {
-						fs.readdir(fileOrFolder, (err, files) => {
+						fs.readdir(fullPath, (err, files) => {
 							if (err) reject(err);
 							else {
-								debug("Reading files from directory %o: %O", fileOrFolder, files);
+								debug("Reading files from directory %o: %O", fullPath, files);
 								Promise.all(
 									files
 										.map(f => {
-											const joined = path.join(fileOrFolder, f);
+											const joined = path.join(fullPath, f);
 											if (path.isAbsolute(joined)) return joined;
 											return path.resolve(base, "./" + joined);
 										})
@@ -144,15 +144,15 @@ async function applyTemplateRecursive(
 							}
 						});
 					} else if (stats.isFile()) {
-						fs.readFile(fileOrFolder, (err, data) => {
+						fs.readFile(fullPath, (err, data) => {
 							if (err) reject(err);
 							else
 								resolve({
-									[path.relative(base, fileOrFolder)]: renderTemplate(data.toString(), context)
+									[path.relative(base, fullPath)]: renderTemplate(data.toString(), context)
 								});
 						});
 					} else if (stats.isSymbolicLink()) {
-						fs.readlink(fileOrFolder, (err, link) => {
+						fs.readlink(fullPath, (err, link) => {
 							if (err) reject(err);
 							else resolve(applyTemplateRecursive(base, link, context));
 						});
