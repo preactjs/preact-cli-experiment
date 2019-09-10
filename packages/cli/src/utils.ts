@@ -97,6 +97,13 @@ export async function isDir(path: string): Promise<boolean> {
 	});
 }
 
+export function stringify(a: any): string {
+	if ("toString" in a) {
+		return a.toString();
+	}
+	return `${a}`;
+}
+
 export const hookPlugins = memoize(_hookPlugins);
 
 async function _hookPlugins(program: CommanderStatic) {

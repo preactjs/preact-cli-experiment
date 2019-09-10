@@ -7,7 +7,7 @@ import inquirer from "inquirer";
 import isValidName from "validate-npm-package-name";
 import _mkdirp from "mkdirp";
 import gittar from "gittar";
-import { isDir } from "../utils";
+import { isDir, stringify } from "../utils";
 import PluginAPI from "../api/plugin";
 import { CLIArguments, CommandArguments } from "../types";
 import { renderTemplate } from "../lib/template";
@@ -36,12 +36,12 @@ const writeFile = util.promisify(fs.writeFile);
 const glob = util.promisify(_glob);
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
-	api.registerCommand("create [template] <name> [dest]")
+	api.registerCommand("create [template] [name] [dest]")
 		.description("Legacy command to create a project from either the official template, or a user-defined one")
 		.option("--no-install", "Disable package-manager installation of dependencies")
 		.option("--license <license>", "License to use", "MIT")
 		.option("--git", "Setup a git repository")
-		.action(async (template: string | undefined, name: string, dest: string | undefined, argv: CreateArgv) => {
+		.action(async (name: string, template: string | undefined, dest: string | undefined, argv: CreateArgv) => {
 			const answers = await api.prompt(
 				requestMissingParams(api, Object.assign({ template, name, dest }, argv, opts))
 			);
@@ -59,38 +59,45 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				api.setStatus(undefined, "fatal");
 			}
 			if (!finalOptions.template.includes("/")) {
-				template = `${ORG}/${finalOptions.name}`;
-				api.setStatus(`Assuming you meant ${template}...`, "info");
+				finalOptions.template = `${ORG}/${finalOptions.template}`;
+				api.setStatus(`Assuming you meant ${finalOptions.template}...`, "info");
 			}
 			const sourceFolder = path.resolve(target, "src");
 			if (!fs.existsSync(sourceFolder)) {
-				await util.promisify(mkdirp)(sourceFolder);
+				await mkdirp(sourceFolder);
 			}
 
 			api.setStatus("Fetching template");
 
-			const archive = await gittar.fetch(template).catch(err => {
+			const archive = await gittar.fetch(finalOptions.template).catch(err => {
 				err = err || { message: "An error occured while fetching template." };
 
-				return api.setStatus(err.code === 404 ? `Could not find repository ${template}` : err.message);
+				return api.setStatus(
+					err.code === 404 ? `Could not find repository ${finalOptions.template}` : err.message
+				);
 			});
 
 			api.setStatus("Creating project");
+			api.debug("Archive %O", archive);
 
 			const keeps: any[] = [];
 			await gittar.extract(archive, target, {
 				strip: 2,
 				filter(path: string, obj: any) {
+					api.debug("Extracting file %o", path);
 					if (path.includes("/template/")) {
 						obj.on("end", () => {
 							if (obj.type === "File" && MEDIA_EXT.test(obj.path)) {
+								api.debug("Pushing %o", obj.absolute);
 								keeps.push(obj.absolute);
 							}
 						});
+						return true;
 					}
+					return false;
 				}
 			});
-
+			api.debug("keeps %O", keeps);
 			if (keeps.length) {
 				const context = {
 					"pkg-install": opts.pm.getInstallCommand(),
@@ -104,12 +111,12 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				let buf: string;
 				const enc = "utf8";
 				for (const entry of keeps) {
-					buf = await util.promisify(fs.readFile)(entry, enc);
-					await util.promisify(fs.writeFile)(entry, renderTemplate(buf, context), enc);
+					buf = await readFile(entry, enc);
+					await writeFile(entry, renderTemplate(buf, context), enc);
 				}
 			} else {
 				api.setStatus(
-					`No ${chalk.magenta("template")} directory found within ${chalk.magenta(template)}`,
+					`No ${chalk.magenta("template")} directory found within ${chalk.green(finalOptions.template)}`,
 					"fatal"
 				);
 			}
@@ -153,20 +160,20 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			const templateSrc = path.resolve(__dirname, "../../assets/template.html");
-			await copyFile(templateSrc, target);
+			await copyFile(templateSrc, path.resolve(target, "./src/template.html"));
 
-			if (finalOptions.install) {
+			if (argv.install) {
 				api.setStatus("Installing dependencies");
 				await opts.pm.runInstall();
 			}
 
-			if (finalOptions.git) {
+			if (argv.git) {
 				api.setStatus("Initializing git");
 				if (!(await initGit(target).catch(_ => false))) {
 					api.setStatus("Couldn't initialize git!", "error");
 				}
 			}
-
+			api.setStatus();
 			api.setStatus("Done!", "success");
 
 			api.setStatus("Created project in " + chalk.magenta(target), "success");
@@ -191,40 +198,40 @@ function requestMissingParams(
 ): inquirer.QuestionCollection {
 	return [
 		{
-			type: "select",
+			type: "list",
 			when: !exists(argv.template),
 			name: "template",
 			message: "Pick a template",
 			choices: [
 				{
 					value: "preactjs-templates/default",
-					title: "Default (JavaScript)",
+					name: "Default (JavaScript)",
 					description: "Default template with all features"
 				},
 				{
 					value: "preactjs-templates/typescript",
-					title: "Default (TypeScript)",
+					name: "Default (TypeScript)",
 					description: "Default template with all features"
 				},
 				{
 					value: "preactjs-templates/material",
-					title: "Material",
+					name: "Material",
 					description: "Material template using preact-material-components"
 				},
 				{
 					value: "preactjs-templates/simple",
-					title: "Simple",
+					name: "Simple",
 					description: "The simplest possible preact setup in a single file"
 				},
 				{
 					value: "preactjs-templates/widget",
-					title: "Widget",
+					name: "Widget",
 					description: "Template for a widget to be embedded in another website"
 				},
 				new inquirer.Separator(),
 				{
 					value: "custom",
-					title: "Custom",
+					name: "Custom",
 					description: "Use your own template"
 				}
 			],
@@ -270,7 +277,7 @@ function requestMissingParams(
 }
 
 function exists<T>(obj: T | undefined): obj is T {
-	return typeof obj !== undefined;
+	return typeof obj !== "undefined" && obj !== null;
 }
 
 const capitalize = (x: string) => x.charAt(0).toLowerCase() + x.substr(1);
