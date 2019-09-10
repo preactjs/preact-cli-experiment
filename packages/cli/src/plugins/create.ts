@@ -1,21 +1,24 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import fs from "fs";
 import path from "path";
 import util from "util";
+import _glob from "glob";
 import inquirer from "inquirer";
 import isValidName from "validate-npm-package-name";
-import mkdirp from "mkdirp";
+import _mkdirp from "mkdirp";
 import gittar from "gittar";
 import { isDir } from "../utils";
 import PluginAPI from "../api/plugin";
 import { CLIArguments, CommandArguments } from "../types";
-import { emitKeypressEvents } from "readline";
 import { renderTemplate } from "../lib/template";
 import chalk from "chalk";
-import { addScripts } from "../setup";
+import { addScripts, initGit } from "../setup";
+import { getPackageManager } from "../api/PackageManager";
 
 type CreateArgv = CommandArguments<{
 	install: boolean;
 	license: string;
+	git: boolean;
 }>;
 interface ExtraArgs {
 	template?: string;
@@ -26,17 +29,24 @@ interface ExtraArgs {
 const ORG = "preacjs-templates";
 const MEDIA_EXT = /\.(woff2?|ttf|eot|jpe?g|ico|png|gif|webp|mp4|mov|ogg|webm)(\?.*)?$/i;
 
+const mkdirp = util.promisify(_mkdirp);
+const copyFile = util.promisify(fs.copyFile);
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const glob = util.promisify(_glob);
+
 export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("create [template] <name> [dest]")
 		.description("Legacy command to create a project from either the official template, or a user-defined one")
 		.option("--no-install", "Disable package-manager installation of dependencies")
 		.option("--license <license>", "License to use", "MIT")
+		.option("--git", "Setup a git repository")
 		.action(async (template: string | undefined, name: string, dest: string | undefined, argv: CreateArgv) => {
 			const answers = await api.prompt(
 				requestMissingParams(api, Object.assign({ template, name, dest }, argv, opts))
 			);
 			const { cwd, ...finalOptions }: CLIArguments & CreateArgv & Required<ExtraArgs> = Object.assign(
-				{},
+				{ template, name, dest },
 				argv,
 				opts,
 				answers
@@ -116,9 +126,62 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				pkgData.scripts = exists(pkgData.scripts)
 					? Object.assign(pkgData.scripts, addScripts(cwd, opts.pm))
 					: addScripts(cwd, opts.pm);
+				api.setStatus(`Updating ${chalk.magenta("name")} in ${chalk.green("package.json")}`);
+				pkgData.name = finalOptions.name.toLowerCase().replace(/\s+/g, "_");
+
+				const manifestFiles = await glob(path.join(target, "/**/manifest.json"));
+				const manifest = exists(manifestFiles[0])
+					? JSON.parse(await readFile(manifestFiles[0]).then(b => b.toString()))
+					: null;
+				if (manifest !== null) {
+					api.setStatus(`Updating ${chalk.magenta("name")} within ${chalk.green("manifest.json")}`);
+					manifest.name = manifest.short_name = finalOptions.name;
+					await writeFile(manifestFiles[0], JSON.stringify(manifest, null, 2));
+					if (finalOptions.name.length > 12) {
+						api.setStatus(
+							`You should edit the ${chalk.magenta("short_name")} property of your ${chalk.green(
+								"manifest.json"
+							)} to shorten it to max. 12 characters long.`,
+							"info"
+						);
+					}
+				}
+
+				await writeFile(pkgFile, JSON.stringify(pkgData, null, 2));
 			} else {
 				api.setStatus("Couldn't find " + chalk.green("package.json"), "fatal");
 			}
+
+			const templateSrc = path.resolve(__dirname, "../../assets/template.html");
+			await copyFile(templateSrc, target);
+
+			if (finalOptions.install) {
+				api.setStatus("Installing dependencies");
+				await opts.pm.runInstall();
+			}
+
+			if (finalOptions.git) {
+				api.setStatus("Initializing git");
+				if (!(await initGit(target).catch(_ => false))) {
+					api.setStatus("Couldn't initialize git!", "error");
+				}
+			}
+
+			api.setStatus("Done!", "success");
+
+			api.setStatus("Created project in " + chalk.magenta(target), "success");
+			api.setStatus("You can now start working on your project!", "info");
+			api.setStatus(`\t${chalk.green("cd")} ${chalk.magenta(path.relative(process.cwd(), target))}`, "info");
+			if (!argv.install) {
+				api.setStatus(
+					`\tInstall dependencies with ${["npm", "yarn"]
+						.map(getPackageManager)
+						.map(pm => chalk.magenta(pm.getInstallCommand()))
+						.join(" or ")}`,
+					"info"
+				);
+			}
+			api.setStatus();
 		});
 }
 
