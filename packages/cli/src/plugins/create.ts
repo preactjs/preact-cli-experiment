@@ -49,154 +49,155 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				argv: CreateArgv
 			) => {
 				api.debug("args %O", { name, template, dest });
-			const answers = await api.prompt(
-				requestMissingParams(api, Object.assign({ template, name, dest }, argv, opts))
-			);
-			const { cwd, ...finalOptions }: CLIArguments & CreateArgv & Required<ExtraArgs> = Object.assign(
-				{ template, name, dest },
-				argv,
-				opts,
-				answers
-			);
-			const target = path.resolve(cwd, finalOptions.dest);
-			const { errors } = isValidName(finalOptions.name);
-			if (exists(errors)) {
-				errors.unshift("Invalid package name: " + finalOptions.name);
-				(errors as string[]).map(capitalize).forEach(e => api.setStatus(e, "error"));
-				api.setStatus(undefined, "fatal");
-			}
-			if (!finalOptions.template.includes("/")) {
-				finalOptions.template = `${ORG}/${finalOptions.template}`;
-				api.setStatus(`Assuming you meant ${finalOptions.template}...`, "info");
-			}
-			const sourceFolder = path.resolve(target, "src");
-			if (!fs.existsSync(sourceFolder)) {
-				await mkdirp(sourceFolder);
-			}
-
-			api.setStatus("Fetching template");
-
-			const archive = await gittar.fetch(finalOptions.template).catch(err => {
-				err = err || { message: "An error occured while fetching template." };
-
-				return api.setStatus(
-					err.code === 404 ? `Could not find repository ${finalOptions.template}` : err.message
+				const answers = await api.prompt(
+					requestMissingParams(api, Object.assign({ template, name, dest }, argv, opts))
 				);
-			});
+				const finalOptions: CLIArguments & CreateArgv & Required<ExtraArgs> = Object.assign(
+					{ template, name, dest },
+					argv,
+					opts,
+					answers
+				);
+				const target = path.resolve(finalOptions.cwd, finalOptions.dest);
+				const { errors } = isValidName(finalOptions.name);
+				if (exists(errors)) {
+					errors.unshift("Invalid package name: " + finalOptions.name);
+					(errors as string[]).map(capitalize).forEach(e => api.setStatus(e, "error"));
+					api.setStatus(undefined, "fatal");
+				}
+				if (!finalOptions.template.includes("/")) {
+					finalOptions.template = `${ORG}/${finalOptions.template}`;
+					api.setStatus(`Assuming you meant ${finalOptions.template}...`, "info");
+				}
+				const sourceFolder = path.resolve(target, "src");
+				if (!fs.existsSync(sourceFolder)) {
+					await mkdirp(sourceFolder);
+				}
 
-			api.setStatus("Creating project");
-			api.debug("Archive %O", archive);
+				api.setStatus("Fetching template");
 
-			const keeps: any[] = [];
-			await gittar.extract(archive, target, {
-				strip: 2,
-				filter(path: string, obj: any) {
-					api.debug("Extracting file %o", path);
-					if (path.includes("/template/")) {
-						obj.on("end", () => {
-							if (obj.type === "File" && MEDIA_EXT.test(obj.path)) {
-								api.debug("Pushing %o", obj.absolute);
-								keeps.push(obj.absolute);
-							}
-						});
-						return true;
+				const archive = await gittar.fetch(finalOptions.template).catch(err => {
+					err = err || { message: "An error occured while fetching template." };
+
+					return api.setStatus(
+						err.code === 404 ? `Could not find repository ${finalOptions.template}` : err.message
+					);
+				});
+
+				api.setStatus("Creating project");
+				api.debug("Archive %O", archive);
+
+				const keeps: any[] = [];
+				await gittar.extract(archive, target, {
+					strip: 2,
+					filter(path: string, obj: any) {
+						api.debug("Extracting file %o", path);
+						if (path.includes("/template/")) {
+							obj.on("end", () => {
+								if (obj.type === "File" && MEDIA_EXT.test(obj.path)) {
+									api.debug("Pushing %o", obj.absolute);
+									keeps.push(obj.absolute);
+								}
+							});
+							return true;
+						}
+						return false;
 					}
-					return false;
+				});
+				api.debug("keeps %O", keeps);
+				if (keeps.length) {
+					const context = {
+						"pkg-install": opts.pm.getInstallCommand(),
+						"pkg-run": opts.pm.getRunCommand(""),
+						"pkg-add": opts.pm.getAddCommand(false, ""),
+						"now-year": new Date().getFullYear().toFixed(),
+						license: argv.license,
+						name
+					};
+
+					let buf: string;
+					const enc = "utf8";
+					for (const entry of keeps) {
+						buf = await readFile(entry, enc);
+						await writeFile(entry, renderTemplate(buf, context), enc);
+					}
+				} else {
+					api.setStatus(
+						`No ${chalk.magenta("template")} directory found within ${chalk.green(finalOptions.template)}`,
+						"fatal"
+					);
 				}
-			});
-			api.debug("keeps %O", keeps);
-			if (keeps.length) {
-				const context = {
-					"pkg-install": opts.pm.getInstallCommand(),
-					"pkg-run": opts.pm.getRunCommand(""),
-					"pkg-add": opts.pm.getAddCommand(false, ""),
-					"now-year": new Date().getFullYear().toFixed(),
-					license: argv.license,
-					name
-				};
 
-				let buf: string;
-				const enc = "utf8";
-				for (const entry of keeps) {
-					buf = await readFile(entry, enc);
-					await writeFile(entry, renderTemplate(buf, context), enc);
+				api.setStatus("Parsing " + chalk.green("package.json"));
+
+				const pkgFile = path.resolve(target, "package.json");
+				if (fs.existsSync(pkgFile)) {
+					const pkgData = JSON.parse(
+						await util
+							.promisify(fs.readFile)(pkgFile)
+							.then(b => b.toString())
+					);
+					pkgData.scripts = exists(pkgData.scripts)
+						? Object.assign(pkgData.scripts, addScripts(finalOptions.cwd, opts.pm))
+						: addScripts(finalOptions.cwd, opts.pm);
+					api.setStatus(`Updating ${chalk.magenta("name")} in ${chalk.green("package.json")}`);
+					pkgData.name = finalOptions.name.toLowerCase().replace(/\s+/g, "_");
+
+					const manifestFiles = await glob(path.join(target, "/**/manifest.json"));
+					const manifest = exists(manifestFiles[0])
+						? JSON.parse(await readFile(manifestFiles[0]).then(b => b.toString()))
+						: null;
+					if (manifest !== null) {
+						api.setStatus(`Updating ${chalk.magenta("name")} within ${chalk.green("manifest.json")}`);
+						manifest.name = manifest.short_name = finalOptions.name;
+						await writeFile(manifestFiles[0], JSON.stringify(manifest, null, 2));
+						if (finalOptions.name.length > 12) {
+							api.setStatus(
+								`You should edit the ${chalk.magenta("short_name")} property of your ${chalk.green(
+									"manifest.json"
+								)} to shorten it to max. 12 characters long.`,
+								"info"
+							);
+						}
+					}
+
+					await writeFile(pkgFile, JSON.stringify(pkgData, null, 2));
+				} else {
+					api.setStatus("Couldn't find " + chalk.green("package.json"), "fatal");
 				}
-			} else {
-				api.setStatus(
-					`No ${chalk.magenta("template")} directory found within ${chalk.green(finalOptions.template)}`,
-					"fatal"
-				);
-			}
 
-			api.setStatus("Parsing " + chalk.green("package.json"));
+				const templateSrc = path.resolve(__dirname, "../../assets/template.html");
+				await copyFile(templateSrc, path.resolve(target, "./src/template.html"));
 
-			const pkgFile = path.resolve(target, "package.json");
-			if (fs.existsSync(pkgFile)) {
-				const pkgData = JSON.parse(
-					await util
-						.promisify(fs.readFile)(pkgFile)
-						.then(b => b.toString())
-				);
-				pkgData.scripts = exists(pkgData.scripts)
-					? Object.assign(pkgData.scripts, addScripts(cwd, opts.pm))
-					: addScripts(cwd, opts.pm);
-				api.setStatus(`Updating ${chalk.magenta("name")} in ${chalk.green("package.json")}`);
-				pkgData.name = finalOptions.name.toLowerCase().replace(/\s+/g, "_");
+				if (argv.install) {
+					api.setStatus("Installing dependencies");
+					await opts.pm.runInstall();
+				}
 
-				const manifestFiles = await glob(path.join(target, "/**/manifest.json"));
-				const manifest = exists(manifestFiles[0])
-					? JSON.parse(await readFile(manifestFiles[0]).then(b => b.toString()))
-					: null;
-				if (manifest !== null) {
-					api.setStatus(`Updating ${chalk.magenta("name")} within ${chalk.green("manifest.json")}`);
-					manifest.name = manifest.short_name = finalOptions.name;
-					await writeFile(manifestFiles[0], JSON.stringify(manifest, null, 2));
-					if (finalOptions.name.length > 12) {
-						api.setStatus(
-							`You should edit the ${chalk.magenta("short_name")} property of your ${chalk.green(
-								"manifest.json"
-							)} to shorten it to max. 12 characters long.`,
-							"info"
-						);
+				if (argv.git) {
+					api.setStatus("Initializing git");
+					if (!(await initGit(target).catch(_ => false))) {
+						api.setStatus("Couldn't initialize git!", "error");
 					}
 				}
+				api.setStatus();
+				api.setStatus("Done!", "success");
 
-				await writeFile(pkgFile, JSON.stringify(pkgData, null, 2));
-			} else {
-				api.setStatus("Couldn't find " + chalk.green("package.json"), "fatal");
-			}
-
-			const templateSrc = path.resolve(__dirname, "../../assets/template.html");
-			await copyFile(templateSrc, path.resolve(target, "./src/template.html"));
-
-			if (argv.install) {
-				api.setStatus("Installing dependencies");
-				await opts.pm.runInstall();
-			}
-
-			if (argv.git) {
-				api.setStatus("Initializing git");
-				if (!(await initGit(target).catch(_ => false))) {
-					api.setStatus("Couldn't initialize git!", "error");
+				api.setStatus("Created project in " + chalk.magenta(target), "success");
+				api.setStatus("You can now start working on your project!", "info");
+				api.setStatus(`\t${chalk.green("cd")} ${chalk.magenta(path.relative(process.cwd(), target))}`, "info");
+				if (!argv.install) {
+					api.setStatus(
+						`\tInstall dependencies with ${["npm", "yarn"]
+							.map(getPackageManager)
+							.map(pm => chalk.magenta(pm.getInstallCommand()))
+							.join(" or ")}`,
+						"info"
+					);
 				}
+				api.setStatus();
 			}
-			api.setStatus();
-			api.setStatus("Done!", "success");
-
-			api.setStatus("Created project in " + chalk.magenta(target), "success");
-			api.setStatus("You can now start working on your project!", "info");
-			api.setStatus(`\t${chalk.green("cd")} ${chalk.magenta(path.relative(process.cwd(), target))}`, "info");
-			if (!argv.install) {
-				api.setStatus(
-					`\tInstall dependencies with ${["npm", "yarn"]
-						.map(getPackageManager)
-						.map(pm => chalk.magenta(pm.getInstallCommand()))
-						.join(" or ")}`,
-					"info"
-				);
-			}
-			api.setStatus();
-		});
+		);
 }
 
 function requestMissingParams(
