@@ -5,12 +5,11 @@
 		"module": "commonjs",
 		"outDir": "dist",
 		"downlevelIteration": true,
-		"resolveJsonModule": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
 		"esModuleInterop": true,
-		"allowJs": true,
+		"declaration": true,
 		"sourceMap": true,
 		"baseUrl": "./packages"
 	},
