@@ -92,11 +92,10 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				await gittar.extract(archive, target, {
 					strip: 2,
 					filter(path: string, obj: any) {
-						api.debug("Extracting file %o", path);
+						api.setStatus(`Extracting file ${chalk.magenta(path)}`);
 						if (path.includes("/template/")) {
 							obj.on("end", () => {
 								if (obj.type === "File" && MEDIA_EXT.test(obj.path)) {
-									api.debug("Pushing %o", obj.absolute);
 									keeps.push(obj.absolute);
 								}
 							});
@@ -105,7 +104,6 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 						return false;
 					}
 				});
-				api.debug("keeps %O", keeps);
 				if (keeps.length) {
 					const context = {
 						"pkg-install": opts.pm.getInstallCommand(),
@@ -196,7 +194,6 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 						"info"
 					);
 				}
-				api.setStatus();
 			}
 		);
 }
