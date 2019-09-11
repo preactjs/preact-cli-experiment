@@ -159,7 +159,6 @@ export default class PluginAPI {
 	/**
 	 * Returns the Plugin Registry to interact with installed plugins
 	 */
-	@memoizeAsync
 	public async getRegistry(): Promise<PluginRegistry> {
 		return hookPlugins(this.commander);
 	}
