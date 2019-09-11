@@ -18,7 +18,7 @@ import { CommonWebpackEnv } from "./types";
 function readJson(file: string) {
 	try {
 		return JSON.parse(fs.readFileSync(file).toString());
-	} catch (e) {}
+	} catch (e) { }
 }
 
 // attempt to resolve a dependency, giving $CWD/node_modules priority:
@@ -78,7 +78,7 @@ export default function configBase(env: CommonWebpackEnv) {
 	try {
 		requireRelative.resolve("preact/compat", cwd);
 		compat = "preact/compat";
-	} catch (e) {}
+	} catch (e) { }
 
 	const babelConfig = Object.assign(
 		{ babelrc: false },
@@ -275,7 +275,7 @@ export default function configBase(env: CommonWebpackEnv) {
 					patterns: [
 						{
 							regex: /throw\s+(new\s+)?(Type|Reference)?Error\s*\(/g,
-							value: s => `return;${Array(s.length - 7).join(" ")}(`
+							value: (s: string) => `return;${Array(s.length - 7).join(" ")}(`
 						}
 					]
 				}
