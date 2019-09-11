@@ -67,7 +67,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				}
 				if (!finalOptions.template.includes("/")) {
 					finalOptions.template = `${ORG}/${finalOptions.template}`;
-					api.setStatus(`Assuming you meant ${finalOptions.template}...`, "info");
+					api.setStatus(`Assuming you meant ${chalk.magenta(finalOptions.template)}...`, "info");
 				}
 				const sourceFolder = path.resolve(target, "src");
 				if (!fs.existsSync(sourceFolder)) {
@@ -276,6 +276,7 @@ function requestMissingParams(
 		},
 		{
 			type: "confirm",
+			when: ![argv.template, argv.name, argv.dest].some(exists),
 			name: "install",
 			message: "Install dependencies",
 			initial: true
