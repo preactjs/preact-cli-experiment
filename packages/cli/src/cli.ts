@@ -32,7 +32,7 @@ program.on("option:debug", () => {
 hookPlugins(program).then(registry => {
 	const argv = program.parseOptions(process.argv);
 	const opts = program.opts();
-	["new", "build", "create"].forEach(name => {
+	["build", "create", "info", "new"].forEach(name => {
 		const importPath = require.resolve(resolve(__dirname, "plugins", name));
 		debug("Hooking internal plugin " + chalk.blue(name));
 		registry.add(
