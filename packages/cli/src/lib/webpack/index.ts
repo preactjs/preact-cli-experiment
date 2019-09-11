@@ -49,7 +49,7 @@ export async function runWebpack(
 	if (watch) {
 		return devBuild(api, Object.assign({}, env as WebpackEnvironment<WatchArgv>, extra), transformer);
 	} else {
-		return prodBuild(api, Object.assign({}, env as WebpackEnvironment<BuildArgv>, extra), transformer);
+		return prodBuild(api, Object.assign({ rhl: false }, env as WebpackEnvironment<BuildArgv>, extra), transformer);
 	}
 }
 
