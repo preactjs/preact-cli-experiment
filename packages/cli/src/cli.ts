@@ -2,12 +2,13 @@ import { resolve } from "path";
 import program from "commander";
 import _debug from "debug";
 
-import { version } from "../package.json";
 import { hookPlugins } from "./utils";
 import PluginAPI from "./api/plugin";
 import chalk from "chalk";
 import { getPackageManager } from "./api/PackageManager";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require("../package");
 const debug = _debug("@preact/cli");
 
 program.version(version);
