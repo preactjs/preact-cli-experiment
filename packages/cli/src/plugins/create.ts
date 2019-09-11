@@ -271,8 +271,7 @@ function requestMissingParams(
 			type: "input",
 			when: !exists(argv.name),
 			name: "name",
-			message: "Name of your application",
-			validate: name => exists(isValidName(name).errors)
+			message: "Name of your application"
 		},
 		{
 			type: "confirm",
