@@ -1,6 +1,6 @@
-import { WebpackEnvironmentBuild } from "../webpack/types";
+import { CommonWebpackEnv } from "../webpack/types";
 
-export default function createBabelConfig(env: WebpackEnvironmentBuild & { rhl: boolean }, options: any = {}) {
+export default function createBabelConfig(env: CommonWebpackEnv, options: any = {}) {
 	const { production: isProd, rhl: isRHLEnabled } = env || {};
 
 	return {
