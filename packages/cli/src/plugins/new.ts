@@ -4,54 +4,58 @@ import mkdirp from "mkdirp";
 import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import chalk from "chalk";
-import { addScripts } from "../setup";
+import { addScripts, initGit } from "../setup";
 import { CommandArguments, CLIArguments } from "../types";
+import inquirer, { QuestionCollection } from "inquirer";
+import { hookPlugins } from "../utils";
 
-type Argv = CommandArguments<{ install: boolean }>;
+type Argv = CommandArguments<{ install: boolean; git: boolean; license: string }>;
+interface Features {
+	features: string[];
+	uiLib: string;
+}
 
-export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
+export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("new <name> [dir]")
 		.option("--no-install", "Disable installation after project generation")
+		.option("--license <license>", "Sets the project open-source license", "MIT")
+		.option("--git", "Initialize a Git repository")
 		.description("Creates a new Preact project")
 		.action(async (name: string, dir?: string, argv?: Argv) => {
+			const features = await api.prompt(getQuestions());
 			if (!dir) dir = "./" + name;
-			const fullDir = path.resolve(cwd, dir);
+			const fullDir = path.resolve(opts.cwd, dir);
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
 			mkdirp.sync(fullDir);
 
 			const pkg = {
 				name,
 				version: "0.1.0",
+				license: argv.license,
 				author: {},
-				scripts: addScripts(fullDir, pm),
+				scripts: addScripts(fullDir, opts.pm),
 				dependencies: {
 					preact: "^10.0.0-rc.1"
 				},
-				devDependencies: {
-					"@babel/plugin-syntax-dynamic-import": "latest",
-					"@babel/plugin-transform-object-assign": "latest",
-					"@babel/plugin-proposal-decorators": "latest",
-					"@babel/plugin-proposal-class-properties": "latest",
-					"@babel/plugin-proposal-object-rest-spread": "latest",
-					"babel-plugin-transform-react-remove-prop-types": "latest",
-					"@babel/plugin-transform-react-jsx": "latest",
-					"fast-async": "latest",
-					"babel-plugin-macros": "latest",
-					"react-hot-loader": "latest",
-					"if-env": "latest"
-				}
+				devDependencies: features.features.reduce<Record<string, string>>(
+					(obj, p) => Object.assign(obj, { [p]: "latest" }),
+					{ "if-env": "latest" }
+				)
 			};
+			if (features.uiLib !== "") {
+				pkg.devDependencies = Object.assign(pkg.devDependencies, { [features.uiLib]: "latest" });
+			}
 
 			const templateBase = path.join(__dirname, "../../assets/baseProject");
 			const files = await api.applyTemplate(
 				templateBase,
 				{
 					name,
-					"npm-install": pm.getInstallCommand(),
-					"npm-run-dev": pm.getRunCommand("dev"),
-					"npm-run-build": pm.getRunCommand("build"),
-					"npm-run-serve": pm.getRunCommand("serve"),
-					"npm-run-test": pm.getRunCommand("test")
+					"npm-install": opts.pm.getInstallCommand(),
+					"npm-run-dev": opts.pm.getRunCommand("dev"),
+					"npm-run-build": opts.pm.getRunCommand("build"),
+					"npm-run-serve": opts.pm.getRunCommand("serve"),
+					"npm-run-test": opts.pm.getRunCommand("test")
 				},
 				templateBase
 			);
@@ -61,11 +65,24 @@ export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 			if (argv.install) {
 				api.setStatus("Installing dependencies");
 				try {
-					await pm.runInstall({ cwd: fullDir });
+					await opts.pm.runInstall({ cwd: fullDir });
 				} catch (err) {
 					api.setStatus(`Error! ${err}`, "error");
 				}
 			}
+
+			api.setStatus("Invoking plugins...");
+			// TODO(solarliner): ⚠ INTERNAL ⚠ Will be replaced by a public call - this function is not exported
+			const registry = await hookPlugins(argv.parent);
+			registry.invoke("install", opts);
+
+			if (argv.git) {
+				api.setStatus("Initializing git");
+				await initGit(fullDir);
+			}
+
+			api.setStatus();
+
 			api.setStatus("Created project in " + chalk.magenta(fullDir), "success");
 			api.setStatus("You can now start working on your project!", "info");
 			api.setStatus(`\t${chalk.green("cd")} ${chalk.magenta(path.relative(process.cwd(), fullDir))}`, "info");
@@ -79,4 +96,60 @@ export function cli(api: PluginAPI, { cwd, pm }: CLIArguments) {
 				);
 			}
 		});
+}
+
+function getQuestions(): QuestionCollection<Features> {
+	return [
+		{
+			type: "checkbox",
+			name: "features",
+			message: "Select features",
+			choices: [
+				{
+					value: "@preact/cli-plugin-typescript",
+					name: "TypeScript"
+				},
+				{
+					value: "@preact/cli-plugin-css-preprocessors",
+					name: "Sass/SCSS/Less/Stylus"
+				},
+				{
+					value: "@preact/cli-plugin-prerendering",
+					name: "Prerendering"
+				},
+				{
+					value: "@preact/cli-plugin-eslint",
+					name: "Linting"
+				},
+				{
+					value: "@preact/cli-legacy-config",
+					name: "Legacy preact.config.js support"
+				}
+			]
+		},
+		{
+			type: "list",
+			name: "uiLib",
+			message: "Select UI library",
+			choices: [
+				{
+					value: "@preact/cli-pluigin-mdc",
+					name: "Material Design Components"
+				},
+				{
+					value: "@preact/cli-plugin-bulma",
+					name: "Bulma"
+				},
+				{
+					value: "@preact/cli-plugin-mui",
+					name: "Material UI"
+				},
+				new inquirer.Separator(),
+				{
+					value: "",
+					name: "None"
+				}
+			]
+		}
+	];
 }
