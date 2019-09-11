@@ -26,7 +26,7 @@ interface ExtraArgs {
 	dest?: string;
 }
 
-const ORG = "preacjs-templates";
+const ORG = "preactjs-templates";
 const MEDIA_EXT = /\.(woff2?|ttf|eot|jpe?g|ico|png|gif|webp|mp4|mov|ogg|webm)(\?.*)?$/i;
 
 const mkdirp = util.promisify(_mkdirp);
