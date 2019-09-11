@@ -23,7 +23,7 @@ export type BuildArgv = CommandArguments<{
 	template?: string;
 }>;
 
-export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: number }>;
+export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: number; rhl: boolean }>;
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("build [src]")
@@ -82,6 +82,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--dest <folder>", "Destination folder", "build")
 		.option("--no-esm", "Don't output a ES2015 bundle")
 		.option("--no-sw", "Disable service worker generation")
+		.option("--no-rhl", "Don't use react-hot-loader")
 		.option("--clean", "Removes dest. folder before starting")
 		.option("-p, --port <number>", "Port to use", parseInt, 3000)
 		.action(async (src?: string, argv?: WatchArgv) => {
