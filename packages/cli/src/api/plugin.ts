@@ -6,17 +6,27 @@ import ora from "ora";
 import Config from "webpack-chain";
 import mkdirp from "mkdirp";
 import inquirer from "inquirer";
+import { PluginRegistry } from "./registry";
 import { renderTemplate } from "../lib/template";
+import { hookPlugins, memoize, memoizeAsync } from "../utils";
 
 type WebpackChainer = (webpack: Config) => void;
 
 export const debug = _debug("@preact/cli:plugin");
 
 export default class PluginAPI {
+	/// Outputs messages for debugging. Those messages are passed to the `debug` package, and can be shown with `DEBUG=*`
 	public readonly debug: _debug.Debugger;
 	private webpackChainers: WebpackChainer[];
 	private spinner?: ora.Ora;
 	private promptModule: inquirer.PromptModule;
+	/**
+	 * Initializes a new instance of a Preact CLI plugin
+	 * @param base Base directory of the project, that is the root of it
+	 * @param id Identifier for the plugin, internally defined as the package name
+	 * @param importBase Resolved path to the plugin entrypoint
+	 * @param commander commander instance for managing commands
+	 */
 	constructor(
 		private readonly base: string,
 		public readonly id: string,
@@ -29,10 +39,21 @@ export default class PluginAPI {
 		this.promptModule = inquirer.createPromptModule();
 	}
 
+	/** Returns a prompt module from `inquirer`. */
 	public get prompt() {
 		return this.promptModule;
 	}
 
+	/**
+	 * Sets the status, or stops the spinner.
+	 * This method is used for feedback to the user about what is happening.
+	 *
+	 * **Tip**: In order to show a "final message", first stop the spinner by an argument-less call to this method, then
+	 * print the message using the type argument.
+	 * @param text Optional text changing the current status. If not defined, then the current status is used.
+	 * @param type Type of status. If not defined, it changes the spinner text. If defined to one of the options, it
+	 * outputs the text prefixed by an appropriate icon.
+	 */
 	public setStatus(text?: string, type?: "info" | "error" | "fatal" | "success") {
 		if (!this.spinner) this.spinner = ora({ color: "magenta", prefixText: this.id });
 		if (text) {
@@ -75,14 +96,30 @@ export default class PluginAPI {
 		} else this.spinner.stopAndPersist();
 	}
 
+	/**
+	 * Registers a command for the plugin.
+	 * @param name Name and usage of the command; is passed to commander.command
+	 * @param options Command options. Is passed to commander.command
+	 */
 	public registerCommand(name: string, options?: CommandOptions): Command {
 		return this.commander.command(name, options);
 	}
 
+	/**
+	 * Mutate the webpack configuration.
+	 * @param chainer Callback function operating on a Config object from the `webpack-chain` package.
+	 */
 	public chainWebpack(chainer: WebpackChainer) {
 		this.webpackChainers.push(chainer);
 	}
 
+	/**
+	 * Render template from the file or files (and files in sub-folders).
+	 * @returns An object with relative paths as keys and file contents as values. To be used with `writeFileTree`.
+	 * @param fileOrFolder Input file or folder. If file, render the file; if folder, recursively render files and folders
+	 * @param context Context object containing variables and their contents
+	 * @param base Base folder to create relative paths from.
+	 */
 	public async applyTemplate(
 		fileOrFolder: string,
 		context: Record<string, string>,
@@ -95,6 +132,11 @@ export default class PluginAPI {
 		);
 	}
 
+	/**
+	 * Writes files onto disk.
+	 * @param files Object of files to write, with keys representing relative paths and values their contents.
+	 * @param base Base folder to create absolute paths from. If unspecified, the project root is used as base folder.
+	 */
 	public async writeFileTree(files: Record<string, string>, base?: string) {
 		if (base && !path.isAbsolute(base)) base = path.join(this.base, base);
 		return Promise.all(
@@ -114,6 +156,18 @@ export default class PluginAPI {
 		);
 	}
 
+	/**
+	 * Returns the Plugin Registry to interact with installed plugins
+	 */
+	@memoizeAsync
+	public async getRegistry(): Promise<PluginRegistry> {
+		return hookPlugins(this.commander);
+	}
+
+	/**
+	 * Return the list of webpack configuration transformer functions defined by the plugin.
+	 * @ignore Internal function.
+	 */
 	public getChains(): WebpackChainer[] {
 		return this.webpackChainers.slice();
 	}

@@ -11,6 +11,12 @@ const debug = _debug("@preact/cli:registry");
 export class PluginRegistry {
 	private registry: Map<string, PluginAPI>;
 
+	/**
+	 * Creates a PluginRegistry from a list of packages.
+	 * @param base Base folder which plugins will consider to be the project root.
+	 * @param commander Commander instance used to register new commands
+	 * @param plugins List of package names to be included in the registry
+	 */
 	public static fromPlugins(base: string, commander: CommanderStatic, plugins: string[]) {
 		return plugins
 			.map(name => {
@@ -23,15 +29,27 @@ export class PluginRegistry {
 				return registry;
 			}, new PluginRegistry());
 	}
+	/**
+	 * Initializes an empty registry
+	 */
 	constructor() {
 		this.registry = new Map();
 	}
+
+	/**
+	 * Adds a plugin to the registry
+	 * @param plugin Plugin to add
+	 */
 	public add(plugin: PluginAPI) {
 		if (this.registry.has(plugin.id)) throw new Error("Plugin is already in the registry!");
 		debug("Adding plugin ID %o", plugin.id);
 		this.registry.set(plugin.id, plugin);
 	}
 
+	/**
+	 * Transforms the input webpack configuration by installed plugins
+	 * @param config `webpack-chain` configuraiton to be transformed by the plugins' transformer functions
+	 */
 	public hookWebpackChain(config: Config) {
 		for (const plugin of this.registry.values()) {
 			debug(`Applying ${chalk.greenBright("webpack-chain")} functions for %o`, plugin.id);
@@ -40,6 +58,11 @@ export class PluginRegistry {
 		return config;
 	}
 
+	/**
+	 * Invoke an exported function from plugins that define it.
+	 * @param funcName Exported function to invoke in each plugin
+	 * @param options Extra options to pass to the invoked options
+	 */
 	public invoke<A = void>(funcName: string, options: any = {}): (A | undefined)[] {
 		return [...this.registry.values()].map(plugin => {
 			const mod = require(plugin.importBase)[funcName];
