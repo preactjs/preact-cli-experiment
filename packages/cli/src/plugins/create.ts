@@ -59,12 +59,12 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 					answers
 				);
 				const target = path.resolve(finalOptions.cwd, finalOptions.dest);
-				const { errors } = isValidName(finalOptions.name);
+				/* const { errors } = isValidName(finalOptions.name);
 				if (exists(errors)) {
 					errors.unshift("Invalid package name: " + finalOptions.name);
 					(errors as string[]).map(capitalize).forEach(e => api.setStatus(e, "error"));
 					api.setStatus(undefined, "fatal");
-				}
+				} */
 				if (!finalOptions.template.includes("/")) {
 					finalOptions.template = `${ORG}/${finalOptions.template}`;
 					api.setStatus(`Assuming you meant ${chalk.magenta(finalOptions.template)}...`, "info");
@@ -141,7 +141,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 						? Object.assign(pkgData.scripts, addScripts(finalOptions.cwd, opts.pm))
 						: addScripts(finalOptions.cwd, opts.pm);
 					api.setStatus(`Updating ${chalk.magenta("name")} in ${chalk.green("package.json")}`);
-					pkgData.name = finalOptions.name.toLowerCase().replace(/\s+/g, "_");
+					pkgData.name = finalOptions.name.toLowerCase().replace(/\s+/g, "-");
 
 					const manifestFiles = await glob(path.join(target, "/**/manifest.json"));
 					const manifest = exists(manifestFiles[0])
@@ -288,4 +288,4 @@ function exists<T>(obj: T | undefined): obj is T {
 	return typeof obj !== "undefined" && obj !== null;
 }
 
-const capitalize = (x: string) => x.charAt(0).toLowerCase() + x.substr(1);
+function isArgSpecified(argv: any, argName: string): boolean {}
