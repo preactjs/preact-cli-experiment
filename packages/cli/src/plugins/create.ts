@@ -41,7 +41,14 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--no-install", "Disable package-manager installation of dependencies")
 		.option("--license <license>", "License to use", "MIT")
 		.option("--git", "Setup a git repository")
-		.action(async (name: string, template: string | undefined, dest: string | undefined, argv: CreateArgv) => {
+		.action(
+			async (
+				template: string | undefined,
+				name: string | undefined,
+				dest: string | undefined,
+				argv: CreateArgv
+			) => {
+				api.debug("args %O", { name, template, dest });
 			const answers = await api.prompt(
 				requestMissingParams(api, Object.assign({ template, name, dest }, argv, opts))
 			);
