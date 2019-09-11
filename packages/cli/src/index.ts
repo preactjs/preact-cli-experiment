@@ -1,5 +1,7 @@
-import __pluginapi from "./api/plugin";
+import PluginAPI from "./api/plugin";
 
-export { PluginRegistry } from "./api/registry";
+import { PluginRegistry } from "./api/registry";
 
-export const PluginAPI = __pluginapi;
+import * as types from "./types";
+
+export { PluginAPI, PluginRegistry, types };
