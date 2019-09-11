@@ -14,6 +14,7 @@ import { renderTemplate } from "../lib/template";
 import chalk from "chalk";
 import { addScripts, initGit } from "../setup";
 import { getPackageManager } from "../api/PackageManager";
+import { Option } from "commander";
 
 type CreateArgv = CommandArguments<{
 	install: boolean;
@@ -275,11 +276,12 @@ function requestMissingParams(
 			message: "Name of your application"
 		},
 		{
-			type: "confirm",
-			when: ![argv.template, argv.name, argv.dest].some(exists),
-			name: "install",
-			message: "Install dependencies",
-			initial: true
+			type: "list",
+			when: argv.install && !isArgSpecified(argv.parent as any, "--pm"),
+			name: "pm",
+			message: "Which package manager to use?",
+			filter: getPackageManager,
+			choices: ["npm", "yarn"]
 		}
 	];
 }
@@ -288,4 +290,6 @@ function exists<T>(obj: T | undefined): obj is T {
 	return typeof obj !== "undefined" && obj !== null;
 }
 
-function isArgSpecified(argv: any, argName: string): boolean {}
+function isArgSpecified(argv: { rawArgs: string[] }, flag: string): boolean {
+	return argv.rawArgs.some(a => a === flag);
+}
