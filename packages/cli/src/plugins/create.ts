@@ -136,6 +136,10 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 							.promisify(fs.readFile)(pkgFile)
 							.then(b => b.toString())
 					);
+					// Add a dependency on the legacy configuration script if the file is found
+					if (fs.existsSync(path.resolve(target, "./preact.config.js"))) {
+						pkgData["@preact/cli-plugin-legacy-config"] = "latest";
+					}
 					pkgData.scripts = exists(pkgData.scripts)
 						? Object.assign(pkgData.scripts, addScripts(finalOptions.cwd, opts.pm))
 						: addScripts(finalOptions.cwd, opts.pm);
@@ -172,6 +176,9 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 					api.setStatus("Installing dependencies");
 					await opts.pm.runInstall();
 				}
+
+				api.setStatus("Invoking plugins...");
+				(await api.getRegistry()).invoke("install", opts);
 
 				if (argv.git) {
 					api.setStatus("Initializing git");
