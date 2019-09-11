@@ -279,7 +279,7 @@ function requestMissingParams(
 			type: "list",
 			when: argv.install && !isArgSpecified(argv.parent as any, "--pm"),
 			name: "pm",
-			message: "Which package manager to use?",
+			message: "Package manager to use",
 			filter: getPackageManager,
 			choices: ["npm", "yarn"]
 		}
