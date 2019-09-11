@@ -13,8 +13,9 @@ import loadPostcssConfig from "postcss-load-config";
 import Config from "webpack-chain";
 
 import createBabelConfig from "../babel/config";
+import { CommonWebpackEnv } from "./types";
 
-function readJson(file) {
+function readJson(file: string) {
 	try {
 		return JSON.parse(fs.readFileSync(file).toString());
 	} catch (e) {}
@@ -31,7 +32,7 @@ function readJson(file) {
 // 	return dep;
 // }
 
-function findAllNodeModules(startDir) {
+function findAllNodeModules(startDir: string) {
 	let dir = path.resolve(startDir);
 	const dirs = [];
 	const { root } = path.parse(startDir);
@@ -49,7 +50,7 @@ function findAllNodeModules(startDir) {
 	}
 }
 
-export default function configBase(env) {
+export default function configBase(env: CommonWebpackEnv) {
 	const { cwd, isProd, isWatch, src, source } = env;
 	const config = new Config();
 
@@ -63,7 +64,7 @@ export default function configBase(env) {
 	// use browserslist config environment, config default, or default browsers
 	// default browsers are > 0.25% global market share or Internet Explorer >= 9
 	const browserslistDefaults = ["> 0.25%", "IE >= 9"];
-	const browserlistConfig = Object(browserslist.findConfig(cwd));
+	const browserlistConfig = Object((browserslist as any).findConfig(cwd));
 	const browsers =
 		(isProd ? browserlistConfig.production : browserlistConfig.development) ||
 		browserlistConfig.default ||
@@ -88,7 +89,7 @@ export default function configBase(env) {
 	let postcssPlugins;
 
 	try {
-		postcssPlugins = loadPostcssConfig.sync(cwd).plugins;
+		postcssPlugins = loadPostcssConfig.sync({ cwd }).plugins;
 	} catch (error) {
 		postcssPlugins = [autoprefixer({ overrideBrowserslist: browsers })];
 	}
