@@ -6,12 +6,6 @@ export default function createBabelConfig(env: CommonWebpackEnv, options: any = 
 	return {
 		presets: [
 			[
-				require.resolve("@babel/preset-typescript"),
-				{
-					jsxPragma: "h"
-				}
-			],
-			[
 				require.resolve("@babel/preset-env"),
 				{
 					loose: true,
