@@ -83,7 +83,7 @@ function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 					  ]),
 				existsSync(env.source("assets")) && { from: "assets", to: "assets" },
 				{
-					from: path.resolve(__dirname, "../../../assets/resources/sw-debug.js"),
+					from: path.resolve(__dirname, "../../../assets/sw-debug.js"),
 					to: "sw-debug.js"
 				},
 				existsSync(env.source("static")) && { from: path.resolve(env.source("static")), to: "." }
