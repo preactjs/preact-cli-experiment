@@ -132,13 +132,7 @@ export default function configBase(env: CommonWebpackEnv) {
 		.use("proxy")
 		.loader("proxy-loader")
 		.options({ cwd, loader: "less-loader", options: { sourceMap: true, paths: [...nodeModules] } });
-	config.module
-		.rule("sass")
-		.enforce("pre")
-		.test(/\.s[ac]ss$/)
-		.use("proxy")
-		.loader("proxy-loader")
-		.options({ cwd, loader: "sass-loader", options: { sourceMap: true, includePaths: [...nodeModules] } });
+
 	config.module
 		.rule("stylus")
 		.enforce("pre")
