@@ -141,6 +141,7 @@ function getDefault<T>(val: T | { default: T }): T {
 }
 
 function getRuleName(rule: webpack.RuleSetUse): string {
+	if (!rule) return "no-loader";
 	if (typeof rule === "string") return rule;
 	if (typeof rule === "function") {
 		const data = {};
@@ -152,4 +153,5 @@ function getRuleName(rule: webpack.RuleSetUse): string {
 	if ("loader" in rule) {
 		return rule.loader;
 	}
+	return `${rule}`;
 }
