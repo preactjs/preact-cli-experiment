@@ -30,6 +30,7 @@
 		"url": "https://github.com/SolarLiner/preact-cli-experiment/issues"
 	},
 	"devDependencies": {
+		"@preact/cli": "^0.0.0",
 		"@types/node": "^12.7.5",
 		"typescript": "^3.6.3"
 	},
