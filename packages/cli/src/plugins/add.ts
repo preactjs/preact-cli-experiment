@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import PluginAPI from "../api/plugin";
-import { CLIArguments } from "../types";
-import requireRelative = require("require-relative");
+import { CLIArguments, CommandArguments } from "../types";
+import requireRelative from "require-relative";
 import chalk from "chalk";
-import { CommandArguments } from "../../dist";
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("add <plugin>")
