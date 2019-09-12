@@ -11,6 +11,7 @@ import ProgressBarPlugin from "progress-bar-webpack-plugin";
 import ReplacePlugin from "webpack-plugin-replace";
 import loadPostcssConfig from "postcss-load-config";
 import Config from "webpack-chain";
+import chalk from "chalk";
 
 import createBabelConfig from "../babel/config";
 import { CommonWebpackEnv } from "./types";
@@ -234,7 +235,10 @@ export default function configBase(env: CommonWebpackEnv) {
 		.use(ProgressBarPlugin, [
 			{
 				format:
-					"\u001b[97m\u001b[44m Build \u001b[49m\u001b[39m [:bar] \u001b[32m\u001b[1m:percent\u001b[22m\u001b[39m (:elapseds) \u001b[2m:msg\u001b[22m",
+					// "\u001b[97m\u001b[44m Build \u001b[49m\u001b[39m [:bar] \u001b[32m\u001b[1m:percent\u001b[22m\u001b[39m (:elapseds) \u001b[2m:msg\u001b[22m",
+					`${chalk.bgMagenta(" ⚛ Build ")} [:bar] [${chalk.magenta(":percent")} - :elapseds] ${chalk.bgBlack(
+						":msg"
+					)}`,
 				renderThrottle: 100,
 				summary: false,
 				clear: true
