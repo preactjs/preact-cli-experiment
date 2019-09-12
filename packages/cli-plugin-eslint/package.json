@@ -1,0 +1,44 @@
+{
+	"name": "@preact/cli-plugin-eslint",
+	"version": "0.0.0",
+	"description": "ESLint linting support for Preact CLI",
+	"keywords": [
+		"preact",
+		"cli",
+		"plugin",
+		"eslint"
+	],
+	"author": "Nathan Graule <solarliner@gmail.com>",
+	"homepage": "https://github.com/SolarLiner/preact-cli-experiment#readme",
+	"license": "MIT",
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"registry": "https://registry.yarnpkg.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/SolarLiner/preact-cli-experiment.git"
+	},
+	"scripts": {
+		"build": "tsc -b tsconfig.build.json",
+		"test": "echo \"Error: run tests from root\" && exit 1"
+	},
+	"bugs": {
+		"url": "https://github.com/SolarLiner/preact-cli-experiment/issues"
+	},
+	"devDependencies": {
+		"@preact/cli": "^0.0.0",
+		"@types/node": "^12.7.5",
+		"eslint": "^6.3.0",
+		"typescript": "^3.6.3"
+	},
+	"dependencies": {
+		"eslint-loader": "^3.0.0"
+	},
+	"peerDependencies": {
+		"eslint": "^6.3.0"
+	}
+}
