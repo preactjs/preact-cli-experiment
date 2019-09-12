@@ -74,11 +74,14 @@ export class PluginRegistry {
 				);
 				if (mod) {
 					try {
-						const result = await normalizePromise(mod(plugin, Object.assign({}, options)));
+						const result = await normalizePromise(mod(plugin, Object.assign({}, options))).catch(err => {
+							plugin.setStatus(`Plugin execution error, skipping`, "error");
+							debug("Plugin %o exec error %O", plugin.id, err);
+						});
 						plugin.setStatus();
 						return result;
 					} catch (err) {
-						plugin.setStatus(`Plugin ${chalk.magenta(plugin.id)} error: ${err}`, "error");
+						plugin.setStatus(`Plugin error: ${err}`, "fatal");
 					}
 				}
 				return undefined;
