@@ -106,12 +106,12 @@ export function stringify(a: any): string {
 
 export const hookPlugins = memoize(_hookPlugins);
 
-async function _hookPlugins(program: CommanderStatic) {
+async function _hookPlugins(program: CommanderStatic, cwd = process.cwd()) {
 	try {
 		const {
 			path,
 			contents: { dependencies, devDependencies }
-		} = await getPackageJson(process.cwd());
+		} = await getPackageJson(cwd);
 
 		const matchingDependencies = new Set(Object.keys(dependencies).filter(filterPluginDependencies));
 		if (matchingDependencies.size > 0) {

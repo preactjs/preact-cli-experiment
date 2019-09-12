@@ -5,7 +5,7 @@ import chalk from "chalk";
 import rimraf from "rimraf";
 
 import PluginAPI from "../api/plugin";
-import { runWebpack } from "../lib/webpack";
+import { runWebpack, resolveWebpack } from "../lib/webpack";
 import { hookPlugins, isDir } from "../utils";
 import { CLIArguments, CommandArguments } from "../types";
 
@@ -16,6 +16,7 @@ export type BuildArgv = CommandArguments<{
 	dest: string;
 	esm: boolean;
 	inlineCss: boolean;
+	onlyResolve?: string;
 	prerender: boolean;
 	preload: boolean;
 	production: boolean;
@@ -23,7 +24,12 @@ export type BuildArgv = CommandArguments<{
 	template?: string;
 }>;
 
-export type WatchArgv = CommandArguments<{ dest: string; clean: boolean; port: number; rhl: boolean }>;
+export type WatchArgv = CommandArguments<{
+	dest: string;
+	clean: boolean;
+	port: number;
+	rhl: boolean;
+}>;
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("build [src]")
@@ -38,6 +44,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--template <path>", "Use a custom template to render the HTML", undefined)
 		.option("--no-inline-css", "Disable inlining of CSS")
 		.option("--no-prerender", "Don't prerender URLs")
+		.option("--only-resolve <type>", "Don't build, just print the JSON to stdout")
 		.action(async (src?: string, argv?: BuildArgv) => {
 			const { cwd, pm } = opts;
 			src = src !== undefined ? path.join(cwd, src) : cwd;
@@ -66,9 +73,20 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				await promisify(rimraf)(dest);
 			}
 
-			const registry = await hookPlugins(argv.parent);
+			const registry = await api.getRegistry();
 			const buildOptions = Object.assign({}, argv, opts);
 			await registry.invoke("build", buildOptions);
+
+			if (argv.onlyResolve) {
+				const resolvedConfig = await resolveWebpack(
+					api,
+					buildOptions,
+					config => registry.hookWebpackChain(config),
+					argv.onlyResolve === "server"
+				);
+				process.stdout.write(JSON.stringify(resolvedConfig, avoidCircularReference()));
+				return;
+			}
 
 			try {
 				await runWebpack(api, buildOptions, config => registry.hookWebpackChain(config));
@@ -125,4 +143,12 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				}
 			}
 		});
+}
+
+function avoidCircularReference(): (key: string, value: any) => any {
+	const objects = new Set<object>();
+	return (_, value) =>
+		typeof value === "object" && !Array.isArray(value) && objects.has(value)
+			? "[Circular]"
+			: objects.add(value) && value;
 }
