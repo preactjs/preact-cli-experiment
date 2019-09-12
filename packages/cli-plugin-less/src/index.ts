@@ -1,4 +1,7 @@
-import { PluginAPI, CLIArguments } from "@preact/cli";
+import { PluginAPI } from "@preact/cli";
+
+export const build = addLess;
+export const watch = addLess;
 
 async function addLess(api: PluginAPI) {
 	api.chainWebpack(chain =>

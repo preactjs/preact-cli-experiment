@@ -125,14 +125,6 @@ export default function configBase(env: CommonWebpackEnv) {
 		.use("babel")
 		.loader("babel-loader")
 		.options(babelConfig);
-
-	config.module
-		.rule("stylus")
-		.enforce("pre")
-		.test(/\.styl$/)
-		.use("proxy")
-		.loader("proxy-loader")
-		.options({ cwd, loader: "stylus-loader", options: { sourceMap: true, paths: [nodeModules] } });
 	const userCssRule = config.module
 		.rule("user-styles")
 		.enforce("pre")
