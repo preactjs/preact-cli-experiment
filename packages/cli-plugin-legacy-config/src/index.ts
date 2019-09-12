@@ -4,7 +4,7 @@ import fs from "fs";
 import { promisify } from "util";
 import chalk from "chalk";
 import webpack from "webpack";
-import { PluginAPI, CLIArguments, BuildArgv } from "@preact/cli";
+import { PluginAPI, CLIArguments, BuildArgv, WatchArgv } from "@preact/cli";
 import WebpackConfigHelpers from "./webpack/config-helper";
 
 type CustomConfigFn = (
@@ -25,6 +25,14 @@ const EXTENSIONS = ["js", "json"];
 const stat = promisify(fs.stat);
 
 export async function build(api: PluginAPI, opts: CLIArguments & BuildArgv) {
+	return chainCustomConfig(opts, api);
+}
+
+export async function watch(api: PluginAPI, opts: CLIArguments & WatchArgv) {
+	return chainCustomConfig(opts, api);
+}
+
+async function chainCustomConfig(opts: any, api: PluginAPI) {
 	const env = Object.assign({}, opts, { dev: !opts.production });
 	const helpers = new WebpackConfigHelpers(opts.cwd);
 	const configFile = await findConfig(env);
