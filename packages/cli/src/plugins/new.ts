@@ -72,9 +72,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			}
 
 			api.setStatus("Invoking plugins...");
-			// TODO(solarliner): ⚠ INTERNAL ⚠ Will be replaced by a public call - this function is not exported
-			const registry = await hookPlugins(argv.parent);
-			registry.invoke("install", opts);
+			await api.getRegistry().then(r => r.invoke("install", opts));
 
 			if (argv.git) {
 				api.setStatus("Initializing git");

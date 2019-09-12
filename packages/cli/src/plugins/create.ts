@@ -182,7 +182,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				}
 
 				api.setStatus("Invoking plugins...");
-				(await api.getRegistry()).invoke("install", opts);
+				await api.getRegistry().then(r => r.invoke("install", opts));
 
 				if (argv.git) {
 					api.setStatus("Initializing git");

@@ -63,20 +63,31 @@ export class PluginRegistry {
 	 * @param funcName Exported function to invoke in each plugin
 	 * @param options Extra options to pass to the invoked options
 	 */
-	public invoke<A = void>(funcName: string, options: any = {}): (A | undefined)[] {
-		return [...this.registry.values()].map(plugin => {
-			const mod = require(plugin.importBase)[funcName];
-			debug("Invoking %o from plugin %o " + chalk.grey(!!mod ? "exists" : "doesn't exist"), funcName, plugin.id);
-			if (mod) {
-				try {
-					const result = mod(plugin, Object.assign({}, options));
-					plugin.setStatus();
-					return result;
-				} catch (err) {
-					plugin.setStatus(`Plugin ${chalk.magenta(plugin.id)} error: ${err}`, "error");
+	public async invoke<A = void>(funcName: string, options: any = {}): Promise<(A | undefined)[]> {
+		return Promise.all(
+			[...this.registry.values()].map(async plugin => {
+				const mod = require(plugin.importBase)[funcName];
+				debug(
+					"Invoking %o from plugin %o " + chalk.grey(!!mod ? "exists" : "doesn't exist"),
+					funcName,
+					plugin.id
+				);
+				if (mod) {
+					try {
+						const result = await normalizePromise(mod(plugin, Object.assign({}, options)));
+						plugin.setStatus();
+						return result;
+					} catch (err) {
+						plugin.setStatus(`Plugin ${chalk.magenta(plugin.id)} error: ${err}`, "error");
+					}
 				}
-			}
-			return undefined;
-		});
+				return undefined;
+			})
+		);
 	}
+}
+
+function normalizePromise<T>(val: T | Promise<T>): Promise<T> {
+	if (val instanceof Promise) return val;
+	return Promise.resolve(val);
 }

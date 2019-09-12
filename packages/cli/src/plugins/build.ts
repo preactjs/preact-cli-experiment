@@ -68,7 +68,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 
 			const registry = await hookPlugins(argv.parent);
 			const buildOptions = Object.assign({}, argv, opts);
-			registry.invoke("build", buildOptions);
+			await registry.invoke("build", buildOptions);
 
 			try {
 				await runWebpack(api, buildOptions, config => registry.hookWebpackChain(config));
@@ -114,7 +114,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				argv,
 				opts
 			);
-			registry.invoke("watch", watchOptions);
+			await registry.invoke("watch", watchOptions);
 
 			try {
 				await runWebpack(api, watchOptions, config => registry.hookWebpackChain(config), true);
