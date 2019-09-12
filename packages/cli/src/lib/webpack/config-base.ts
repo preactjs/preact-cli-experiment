@@ -118,7 +118,7 @@ export default function configBase(env: CommonWebpackEnv) {
 	config.module
 		.rule("es2015")
 		.enforce("pre")
-		.test(/\.m?[tj]sx?$/)
+		.test(/\.m?jsx?$/)
 		.type("javascript/auto")
 		.merge({ resolve: { mainFields: ["module", "jsnext:main", "browser", "main"] } })
 		.use("babel")
