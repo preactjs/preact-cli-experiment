@@ -26,7 +26,6 @@
 		"@babel/plugin-transform-object-assign": "^7.2.0",
 		"@babel/plugin-transform-react-jsx": "^7.3.0",
 		"@babel/preset-env": "^7.5.5",
-		"@babel/preset-typescript": "^7.3.3",
 		"@preact/async-loader": "^3.0.0-rc.0",
 		"@types/optimize-css-assets-webpack-plugin": "^5.0.0",
 		"autoprefixer": "^9.6.1",
