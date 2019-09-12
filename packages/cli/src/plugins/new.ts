@@ -7,7 +7,6 @@ import chalk from "chalk";
 import { addScripts, initGit } from "../setup";
 import { CommandArguments, CLIArguments } from "../types";
 import inquirer, { QuestionCollection } from "inquirer";
-import { hookPlugins } from "../utils";
 
 type Argv = CommandArguments<{ install: boolean; git: boolean; license: string }>;
 interface Features {
@@ -107,20 +106,16 @@ function getQuestions(): QuestionCollection<Features> {
 					value: "@preact/cli-plugin-typescript",
 					name: "TypeScript"
 				},
-				{
-					value: "@preact/cli-plugin-css-preprocessors",
-					name: "Sass/SCSS/Less/Stylus"
-				},
-				{
-					value: "@preact/cli-plugin-prerendering",
-					name: "Prerendering"
-				},
+				...["sass", "less", "stylus"].map(v => ({
+					value: `@preact/cli-plugin-${v}`,
+					name: v.charAt(0).toUpperCase() + v.substring(1).toLowerCase()
+				})),
 				{
 					value: "@preact/cli-plugin-eslint",
 					name: "Linting"
 				},
 				{
-					value: "@preact/cli-legacy-config",
+					value: "@preact/cli-plugin-legacy-config",
 					name: "Legacy preact.config.js support"
 				}
 			]
