@@ -1,10 +1,12 @@
+import path from "path";
 import ForkTSChecker from "fork-ts-checker-webpack-plugin";
-import { PluginAPI } from "@preact/cli";
+import { PluginAPI, CLIArguments } from "@preact/cli";
 
 export const build = addTypeScript;
 export const watch = addTypeScript;
 
-function addTypeScript(api: PluginAPI) {
+function addTypeScript(api: PluginAPI, { cwd }: CLIArguments) {
+	const tsconfig = path.resolve(cwd, "tsconfig.json");
 	api.chainWebpack(chain =>
 		chain.module
 			.rule("css-loader")
@@ -21,12 +23,12 @@ function addTypeScript(api: PluginAPI) {
 			.end()
 			.rule("typescript")
 			.use("ts-loader")
-			.options({ transpileOnly: true })
+			.options({ transpileOnly: true, configFile: tsconfig })
 			.end()
 			.end()
 			.end()
 			.plugin("ts-checker")
-			.use(ForkTSChecker)
+			.use(ForkTSChecker, [{ tsconfig }])
 			.end()
 			.resolve.extensions.merge([".ts", ".tsx"])
 			.end()
