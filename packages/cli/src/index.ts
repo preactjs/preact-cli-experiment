@@ -2,6 +2,7 @@ import PluginAPI from "./api/plugin";
 
 import { PluginRegistry } from "./api/registry";
 
-import * as types from "./types";
+import { CLIArguments, CommandArguments, WebpackTransformer } from "./types";
+import { BuildArgv, WatchArgv } from "./plugins/build";
 
-export { PluginAPI, PluginRegistry, types };
+export { PluginAPI, PluginRegistry, CLIArguments, CommandArguments, WebpackTransformer, BuildArgv, WatchArgv };
