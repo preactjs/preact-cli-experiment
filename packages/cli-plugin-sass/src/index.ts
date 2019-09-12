@@ -14,5 +14,8 @@ async function addSass(api: PluginAPI) {
 			.options({
 				sourceMap: true
 			})
+			.end()
+			.end()
+			.end()
 	);
 }

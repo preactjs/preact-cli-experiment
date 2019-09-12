@@ -125,13 +125,6 @@ export default function configBase(env: CommonWebpackEnv) {
 		.use("babel")
 		.loader("babel-loader")
 		.options(babelConfig);
-	config.module
-		.rule("less")
-		.enforce("pre")
-		.test(/\.less$/)
-		.use("proxy")
-		.loader("proxy-loader")
-		.options({ cwd, loader: "less-loader", options: { sourceMap: true, paths: [...nodeModules] } });
 
 	config.module
 		.rule("stylus")
