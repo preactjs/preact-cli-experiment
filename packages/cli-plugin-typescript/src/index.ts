@@ -22,6 +22,7 @@ function addTypeScript(api: PluginAPI, { cwd }: CLIArguments) {
 			.end()
 			.end()
 			.rule("typescript")
+			.test(/\.tsx?$/)
 			.use("ts-loader")
 			.options({ transpileOnly: true, configFile: tsconfig })
 			.end()
