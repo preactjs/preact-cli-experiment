@@ -49,7 +49,7 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 				removeStyleLinkTypeAttributes: true,
 				removeComments: true
 			},
-			favicon: fs.existsSync(path.resolve(env.src, "assets/favicon.ico")) ? "assets/favicon.ico" : "",
+			favicon: fs.existsSync(env.source("assets/favicon.ico")) ? "assets/favicon.ico" : "",
 			inject: true,
 			compile: true,
 			inlineCss: env.inlineCss,
