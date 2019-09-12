@@ -89,3 +89,6 @@ typings/
 
 # Build artifacts
 dist/
+
+# Test package
+packages/test*
