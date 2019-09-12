@@ -14,10 +14,6 @@ type CustomConfigFn = (
 	options?: any
 ) => webpack.Configuration;
 type CustomConfig = Partial<webpack.Configuration> & { webpack: CustomConfigFn };
-interface ConfigParams {
-	configFile: string;
-	isDefault: boolean;
-}
 
 const FILE = "preact.config";
 const EXTENSIONS = ["js", "json"];
