@@ -20,23 +20,28 @@ export async function runWebpack(
 	transformer: WebpackTransformer,
 	watch = false
 ) {
+	const extra = await createExtraEnv(api, env, watch);
+	if (watch) {
+		return devBuild(api, Object.assign({ rhl: false }, env as WebpackEnvironment<WatchArgv>, extra), transformer);
+	} else {
+		return prodBuild(api, Object.assign({}, env as WebpackEnvironment<BuildArgv>, extra), transformer);
+	}
+}
+
+async function createExtraEnv(api: PluginAPI, env: WebpackEnvironment<BuildArgv | WatchArgv>, watch = false) {
 	const isWatch = !!watch;
 	const isProd = isWatch ? false : (env as WebpackEnvironment<BuildArgv>).production;
 	const cwd = path.resolve(env.cwd || process.cwd());
-
 	let src = path.resolve(env.cwd, "src");
 	src = isDir(src) ? src : env.cwd;
 	const source = (dir: string) => path.resolve(src, dir);
-
 	const readFile = util.promisify(fs.readFile);
 	const packageFilepath = path.resolve(env.cwd, "./package.json");
-
 	let manifest: any;
 	try {
 		manifest = JSON.parse(fs.readFileSync(source("manifest.json")).toString());
 	} catch (err) {}
-
-	const extra = {
+	return {
 		isProd,
 		isWatch,
 		cwd,
@@ -46,11 +51,24 @@ export async function runWebpack(
 		pkg: JSON.parse((await readFile(packageFilepath)).toString()),
 		log: api.setStatus
 	};
-	if (watch) {
-		return devBuild(api, Object.assign({}, env as WebpackEnvironment<WatchArgv>, extra), transformer);
-	} else {
-		return prodBuild(api, Object.assign({ rhl: false }, env as WebpackEnvironment<BuildArgv>, extra), transformer);
+}
+
+export async function resolveWebpack(
+	api: PluginAPI,
+	env: WebpackEnvironment<BuildArgv>,
+	transformer: WebpackTransformer,
+	server = false
+): Promise<webpack.Configuration> {
+	const finalEnv = Object.assign({ rhl: false }, env, await createExtraEnv(api, env, false));
+	if (server) {
+		return Promise.resolve(finalEnv)
+			.then(configServer)
+			.then(transformer)
+			.then(c => c.toConfig());
 	}
+	return configClient(finalEnv)
+		.then(transformer)
+		.then(c => c.toConfig());
 }
 
 async function devBuild(api: PluginAPI, env: WebpackEnvironmentWatch, transformer: WebpackTransformer) {
@@ -135,19 +153,21 @@ async function prodBuild(api: PluginAPI, env: WebpackEnvironmentBuild, transform
 }
 
 async function runCompiler(api: PluginAPI, compiler: webpack.Compiler): Promise<any> {
+	api.debug("Running compiler");
 	return new Promise((resolve, reject) => {
 		compiler.run((err, stats) => {
+			api.debug("Compiler ran %o", { isErr: !!err });
 			showStats(api, stats);
 
 			if (err || (stats && stats.hasErrors())) {
 				reject(
-					err ||
-						new Error(
-							"Build failed!\n" +
-								allFields(stats, "errors")
-									.map(stripLoaderPrefix)
-									.join("\n")
-						)
+					// err ||
+					new Error(
+						"Build failed!\n" +
+							allFields(stats, "errors")
+								.map(stripLoaderPrefix)
+								.join("\n")
+					)
 				);
 			}
 
