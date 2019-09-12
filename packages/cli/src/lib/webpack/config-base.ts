@@ -142,6 +142,7 @@ export default function configBase(env: CommonWebpackEnv) {
 		.options({ cwd, loader: "stylus-loader", options: { sourceMap: true, paths: [nodeModules] } });
 	const userCssRule = config.module
 		.rule("user-styles")
+		.enforce("pre")
 		.test(/\.(p?css|less|s[ac]ss|styl)$/)
 		.include.merge([source("components"), source("routes")])
 		.end();
@@ -171,6 +172,7 @@ export default function configBase(env: CommonWebpackEnv) {
 		});
 	const externalCssRule = config.module
 		.rule("external-styles")
+		.enforce("pre")
 		.test(/\.(p?css|less|s[ac]ss|styl)$/)
 		.exclude.merge([source("components"), source("routes")])
 		.end();
