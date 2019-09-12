@@ -1,9 +1,55 @@
+import fs from "fs";
 import path from "path";
+import { promisify } from "util";
 import ForkTSChecker from "fork-ts-checker-webpack-plugin";
 import { PluginAPI, CLIArguments } from "@preact/cli";
 
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
+
 export const build = addTypeScript;
 export const watch = addTypeScript;
+
+export async function install(api: PluginAPI, { cwd }: CLIArguments) {
+	api.setStatus("Writing TypeScript configuration to disk");
+	const tsconfigPath = path.resolve(cwd, "tsconfig.json");
+	if (!fs.existsSync(tsconfigPath)) {
+		await api.writeFileTree({
+			"tsconfig.json": JSON.stringify(
+				{
+					compilerOptions: {
+						target: "es5",
+						module: "esnext",
+						moduleResolution: "node",
+						allowJs: true,
+						jsx: "react",
+						jsxFactory: "h",
+						strict: true,
+						esModuleInterop: true
+					}
+				},
+				null,
+				"\t"
+			)
+		});
+	} else {
+		const config = JSON.parse(await readFile(tsconfigPath).then(b => b.toString()));
+		const updatedConf: any = Object.assign({}, config);
+		updatedConf.compilerOptions = Object.assign(updatedConf.compilerOptions, {
+			target: "es5",
+			module: "esnext",
+			moduleResolution: "node",
+			allowJs: true,
+			jsx: "react",
+			jsxFactory: "h",
+			strict: true,
+			esModuleInterop: true
+		});
+		await writeFile(tsconfigPath, JSON.stringify(updatedConf, null, "\t"));
+	}
+	api.setStatus();
+	api.setStatus("Done", "success");
+}
 
 function addTypeScript(api: PluginAPI, { cwd }: CLIArguments) {
 	const tsconfig = path.resolve(cwd, "tsconfig.json");
