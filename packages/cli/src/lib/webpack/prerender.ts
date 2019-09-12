@@ -1,34 +1,29 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import fs from "fs";
 import path from "path";
-import URL from "url";
 import stackTrace from "stack-trace";
 import { SourceMapConsumer } from "source-map";
 import util from "util";
+import chalk from "chalk";
 
 import { CommonWebpackEnv } from "./types";
-import chalk from "chalk";
 
 const readFile = util.promisify(fs.readFile);
 
 export default function prerender(env: CommonWebpackEnv, params: { url?: string } = {}) {
 	const entry = path.resolve(env.dest, "./ssr-build/ssr-bundle.js");
 	const url = params.url || "/";
-
-	const history = {};
-	const location = {
-		...URL.parse(url)
-	};
+	env.log("Prerendering " + chalk.magenta(url), "info");
+	const resolve = (p: string) => path.resolve(env.cwd, "node_modules", p);
 
 	try {
-		const m = require(entry);
-		const app = (m && m.default) || m;
+		const app = getDefault(require(entry));
 		if (typeof app !== "function") {
-			env.log("Entry does not export a Component function/class, aborting prerendering", "error");
+			env.log("SSR entrypoint doesn't export a component, aborting prerendering", "error");
 			return "";
 		}
-		const preact = require(require.resolve(`${env.cwd}/node_modules/preact`));
-		const renderToString = require(require.resolve(`${env.cwd}/node_modules/preact-render-to-string`));
+		const preact = require(resolve("preact"));
+		const renderToString = require(resolve("preact-render-to-string"));
 		return renderToString(preact.h(app, { ...params, url }));
 	} catch (err) {
 		const stack = stackTrace.parse(err).find(s => s.getFileName() === entry);
@@ -123,4 +118,9 @@ function normalizeString(str: string | Buffer | Uint8Array) {
 	if (typeof str === "string") return str;
 	if (str instanceof Buffer) return str.toString();
 	return str.toString();
+}
+
+function getDefault<T>(val: T | { default: T }): T {
+	if ("default" in val) return val.default;
+	return val;
 }
