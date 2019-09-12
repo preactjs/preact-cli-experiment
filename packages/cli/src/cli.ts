@@ -31,15 +31,13 @@ program.on("option:debug", () => {
 	_debug.enable("@preact/cli");
 });
 
-hookPlugins(program).then(registry => {
+const opts = program.opts();
+hookPlugins(program, opts.cwd).then(registry => {
 	const argv = program.parseOptions(process.argv);
-	const opts = program.opts();
 	["build", "create", "info", "new"].forEach(name => {
 		const importPath = require.resolve(resolve(__dirname, "plugins", name));
 		debug("Hooking internal plugin " + chalk.blue(name));
-		registry.add(
-			new PluginAPI(process.env.PREACT_CLI_CWD || process.cwd(), `@preact/cli:${name}`, importPath, program)
-		);
+		registry.add(new PluginAPI(opts.cwd, `@preact/cli:${name}`, importPath, program));
 	});
 	registry.invoke("cli", opts);
 	program.parse([...argv.args, ...argv.unknown]);
