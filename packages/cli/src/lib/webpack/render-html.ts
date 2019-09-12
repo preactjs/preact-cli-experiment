@@ -37,11 +37,11 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 	const tmpTemplateFile = path.join(tmpDir, "template.ejs");
 	await writeFile(tmpTemplateFile, content);
 
-	const htmlWebpackConfig = (values: any) => {
+	const htmlWebpackConfig = (values: HtmlWebpackPlugin.Options & { url: string }) => {
 		const { url, title, ...routeData } = values;
 		return Object.assign(values, {
 			filename: path.resolve(env.dest, url.substring(1), "index.html"),
-			template: `!!ejs-loader!${template}`,
+			template: `!!ejs-loader!${tmpTemplateFile}`,
 			minify: env.isProd && {
 				collapseWhitespace: true,
 				removeScriptTypeAttributes: true,
@@ -75,7 +75,7 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 			},
 			scriptLoading: "defer",
 			CLI_DATA: { preRenderData: { url, ...routeData } }
-		});
+		}) as HtmlWebpackPlugin.Options;
 	};
 
 	[{ url: "/" }]
