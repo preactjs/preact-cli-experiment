@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/camelcase, @typescript-eslint/no-var-requires */
 /* global __webpack_public_path__ */
 
-import { h, hydrate } from "preact";
+import preact from "preact";
+
+const h = preact;
+let hydrate;
+if ("hydrate" in preact) hydrate = preact.hydrate;
+else hydrate = preact.render;
 
 const interopDefault = m => (m && m.default ? m.default : m);
 
