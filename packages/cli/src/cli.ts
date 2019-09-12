@@ -31,9 +31,10 @@ program.on("option:debug", () => {
 	_debug.enable("@preact/cli");
 });
 
+const argv = program.parseOptions(process.argv);
 const opts = program.opts();
 hookPlugins(program, opts.cwd).then(registry => {
-	const argv = program.parseOptions(process.argv);
+	debug("opts %O", opts);
 	["build", "create", "info", "new"].forEach(name => {
 		const importPath = require.resolve(resolve(__dirname, "plugins", name));
 		debug("Hooking internal plugin " + chalk.blue(name));
