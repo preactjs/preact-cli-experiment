@@ -36,15 +36,12 @@ async function chainCustomConfig(opts: any, api: PluginAPI) {
 		parseConfig(api, getDefault(require("esm")(module)(configFile))).forEach(([t, opts]) => {
 			api.chainWebpack(chain => {
 				const isServer = chain.entryPoints.has("ssr-bundle");
-				api.debug("Transforming config... %o", { isServer });
 				const transformed = t(
 					chain.toConfig(),
 					Object.assign({}, env, { isServer, ssr: isServer }),
 					helpers,
 					opts
 				);
-				api.debug("Rules %O", transformed.module.rules.map(r => getRuleName(r.loaders || r.loader)));
-				api.debug("Plugins %O", transformed.plugins.map(p => p.constructor.name));
 				return chain.merge(transformed);
 			});
 		});
