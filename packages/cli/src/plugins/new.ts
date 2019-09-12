@@ -6,12 +6,11 @@ import { getPackageManager } from "../api/PackageManager";
 import chalk from "chalk";
 import { addScripts, initGit } from "../setup";
 import { CommandArguments, CLIArguments } from "../types";
-import inquirer, { QuestionCollection } from "inquirer";
+import { QuestionCollection } from "inquirer";
 
 type Argv = CommandArguments<{ install: boolean; git: boolean; license: string }>;
 interface Features {
 	features: string[];
-	uiLib: string;
 }
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
@@ -41,9 +40,6 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 					{ "if-env": "latest" }
 				)
 			};
-			if (features.uiLib !== "") {
-				pkg.devDependencies = Object.assign(pkg.devDependencies, { [features.uiLib]: "latest" });
-			}
 
 			const templateBase = path.join(__dirname, "../../assets/baseProject");
 			const files = await api.applyTemplate(
@@ -117,30 +113,6 @@ function getQuestions(): QuestionCollection<Features> {
 				{
 					value: "@preact/cli-plugin-legacy-config",
 					name: "Legacy preact.config.js support"
-				}
-			]
-		},
-		{
-			type: "list",
-			name: "uiLib",
-			message: "Select UI library",
-			choices: [
-				{
-					value: "@preact/cli-pluigin-mdc",
-					name: "Material Design Components"
-				},
-				{
-					value: "@preact/cli-plugin-bulma",
-					name: "Bulma"
-				},
-				{
-					value: "@preact/cli-plugin-mui",
-					name: "Material UI"
-				},
-				new inquirer.Separator(),
-				{
-					value: "",
-					name: "None"
 				}
 			]
 		}
