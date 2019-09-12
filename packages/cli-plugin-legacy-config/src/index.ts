@@ -52,7 +52,7 @@ async function chainCustomConfig(opts: any, api: PluginAPI) {
 
 function parseConfig(api: PluginAPI, config: CustomConfig): [CustomConfigFn, any][] {
 	const transformers: [CustomConfigFn, any][] = [];
-	const addTransformer = (fn, opts = {}) => transformers.push([fn, opts]);
+	const addTransformer = (fn: CustomConfigFn, opts = {}) => transformers.push([fn, opts]);
 
 	if (typeof config === "function") {
 		addTransformer(config);
@@ -62,7 +62,7 @@ function parseConfig(api: PluginAPI, config: CustomConfig): [CustomConfigFn, any
 
 		if (config.plugins)
 			config.plugins
-				.map<(config: webpack.Configuration) => void>((plugin, index) => {
+				.map<CustomConfigFn>((plugin, index) => {
 					if (typeof plugin === "function") {
 						return plugin;
 					} else if (plugin && typeof plugin.apply === "function") {
