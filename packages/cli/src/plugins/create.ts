@@ -140,6 +140,15 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 					else if (hasCustomConfig) {
 						pkgData.devDependencies["@preact/cli-plugin-legacy-config"] = "^" + opts.version;
 					}
+					// Remove instance of old preact & preact-cli (WIP)
+					/* delete pkgData.dependencies.preact;
+					delete pkgData.dependencies["preact-compat"];
+					delete pkgData.devDependencies["preact-cli"];
+					pkgData.devDependencies["@preact/cli"] = "^" + opts.version;
+					pkgData.dependencies["preact"] = "^10.0.0-rc.3";
+					pkgData.dependencies["preact-render-to-string"] = "^5.0.6";
+					if ("preact-router" in pkgData.dependencies) pkgData.dependencies["preact-router"] = "^3.0.1"; */
+					// Add scripts
 					pkgData.scripts = exists(pkgData.scripts)
 						? Object.assign(pkgData.scripts, addScripts(finalOptions.cwd, opts.pm))
 						: addScripts(finalOptions.cwd, opts.pm);
