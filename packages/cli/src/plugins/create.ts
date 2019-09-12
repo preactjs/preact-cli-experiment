@@ -4,17 +4,15 @@ import path from "path";
 import util from "util";
 import _glob from "glob";
 import inquirer from "inquirer";
-import isValidName from "validate-npm-package-name";
 import _mkdirp from "mkdirp";
+import chalk from "chalk";
 import gittar from "gittar";
-import { isDir, stringify } from "../utils";
+import { isDir } from "../utils";
 import PluginAPI from "../api/plugin";
 import { CLIArguments, CommandArguments } from "../types";
 import { renderTemplate } from "../lib/template";
-import chalk from "chalk";
 import { addScripts, initGit } from "../setup";
 import { getPackageManager } from "../api/PackageManager";
-import { Option } from "commander";
 
 type CreateArgv = CommandArguments<{
 	install: boolean;
@@ -62,12 +60,6 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 					answers
 				);
 				const target = path.resolve(finalOptions.cwd, finalOptions.dest);
-				/* const { errors } = isValidName(finalOptions.name);
-				if (exists(errors)) {
-					errors.unshift("Invalid package name: " + finalOptions.name);
-					(errors as string[]).map(capitalize).forEach(e => api.setStatus(e, "error"));
-					api.setStatus(undefined, "fatal");
-				} */
 				if (!finalOptions.template.includes("/")) {
 					finalOptions.template = `${ORG}/${finalOptions.template}`;
 					api.setStatus(`Assuming you meant ${chalk.magenta(finalOptions.template)}...`, "info");
@@ -76,7 +68,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				if (!fs.existsSync(sourceFolder)) {
 					await mkdirp(sourceFolder);
 				}
-
+				api.debug("Is typescript template %o", finalOptions.template === `${ORG}/typescript`);
 				api.setStatus("Fetching template");
 
 				const archive = await gittar.fetch(finalOptions.template).catch(err => {
@@ -103,6 +95,8 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 									keeps.push(obj.absolute);
 								}
 							});
+							if (finalOptions.template === `${ORG}/typescript`)
+								return EXTENSIONS.map(ext => `${CONFIG_FILE}.${ext}`).every(p => !path.endsWith(p));
 							return true;
 						}
 						return false;
@@ -141,8 +135,10 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 							.then(b => b.toString())
 					);
 					// Add a dependency on the legacy configuration script if the file is found
-					if (hasCustomConfig) {
-						pkgData["@preact/cli-plugin-legacy-config"] = "latest";
+					if (finalOptions.template === `${ORG}/typescript`)
+						pkgData.devDependencies["@preact/cli-plugin-typescript"] = "^" + opts.version;
+					else if (hasCustomConfig) {
+						pkgData.devDependencies["@preact/cli-plugin-legacy-config"] = "^" + opts.version;
 					}
 					pkgData.scripts = exists(pkgData.scripts)
 						? Object.assign(pkgData.scripts, addScripts(finalOptions.cwd, opts.pm))
