@@ -33,17 +33,18 @@ async function chainCustomConfig(opts: any, api: PluginAPI) {
 	const helpers = new WebpackConfigHelpers(opts.cwd);
 	const configFile = await findConfig(env);
 	if (fs.existsSync(configFile)) {
-		parseConfig(api, require(configFile)).forEach(([t, opts]) => {
+		parseConfig(api, getDefault(require("esm")(module)(configFile))).forEach(([t, opts]) => {
 			api.chainWebpack(chain => {
-				const isServer = "ssr-bundle" in chain.entries();
-				api.debug("Entrypoints %o", chain.entries());
-				api.debug("Transforming config... %o", [isServer]);
+				const isServer = chain.entryPoints.has("ssr-bundle");
+				api.debug("Transforming config... %o", { isServer });
 				const transformed = t(
 					chain.toConfig(),
 					Object.assign({}, env, { isServer, ssr: isServer }),
 					helpers,
 					opts
 				);
+				api.debug("Rules %O", transformed.module.rules.map(r => getRuleName(r.loaders || r.loader)));
+				api.debug("Plugins %O", transformed.plugins.map(p => p.constructor.name));
 				return chain.merge(transformed);
 			});
 		});
@@ -132,4 +133,23 @@ async function findConfig(env: CLIArguments & BuildArgv): Promise<string> {
 	}
 
 	return FILE + ".js";
+}
+
+function getDefault<T>(val: T | { default: T }): T {
+	if ("default" in val) return val.default;
+	return val;
+}
+
+function getRuleName(rule: webpack.RuleSetUse): string {
+	if (typeof rule === "string") return rule;
+	if (typeof rule === "function") {
+		const data = {};
+		return getRuleName(rule(data));
+	}
+	if (Array.isArray(rule)) {
+		return rule.map(r => getRuleName(r)).join(", ");
+	}
+	if ("loader" in rule) {
+		return rule.loader;
+	}
 }
