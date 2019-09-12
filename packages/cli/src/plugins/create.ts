@@ -29,6 +29,8 @@ interface ExtraArgs {
 
 const ORG = "preactjs-templates";
 const MEDIA_EXT = /\.(woff2?|ttf|eot|jpe?g|ico|png|gif|webp|mp4|mov|ogg|webm)(\?.*)?$/i;
+const CONFIG_FILE = "preact.config";
+const EXTENSIONS = ["js", "json"];
 
 const mkdirp = util.promisify(_mkdirp);
 const copyFile = util.promisify(fs.copyFile);
@@ -89,10 +91,12 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				api.debug("Archive %O", archive);
 
 				const keeps: any[] = [];
+				let hasCustomConfig = false;
 				await gittar.extract(archive, target, {
 					strip: 2,
 					filter(path: string, obj: any) {
 						api.setStatus(`Extracting file ${chalk.magenta(path)}`);
+						if (isCustomConfig(path)) hasCustomConfig = true;
 						if (path.includes("/template/")) {
 							obj.on("end", () => {
 								if (obj.type === "File" && MEDIA_EXT.test(obj.path)) {
@@ -137,7 +141,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 							.then(b => b.toString())
 					);
 					// Add a dependency on the legacy configuration script if the file is found
-					if (fs.existsSync(path.resolve(target, "./preact.config.js"))) {
+					if (hasCustomConfig) {
 						pkgData["@preact/cli-plugin-legacy-config"] = "latest";
 					}
 					pkgData.scripts = exists(pkgData.scripts)
@@ -288,6 +292,10 @@ function requestMissingParams(
 			choices: ["npm", "yarn"]
 		}
 	];
+}
+
+function isCustomConfig(path: string) {
+	return EXTENSIONS.map(ext => `${CONFIG_FILE}.${ext}`).some(f => path.endsWith(f));
 }
 
 function exists<T>(obj: T | undefined): obj is T {
