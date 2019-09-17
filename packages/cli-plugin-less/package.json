@@ -28,7 +28,7 @@
 	},
 	"scripts": {
 		"test": "echo \"Error: run tests from root\" && exit 1",
-		"build": "tsc -b tsconfig.build.ts",
+		"build": "tsc -b tsconfig.build.json",
 		"prepack": "yarn build"
 	},
 	"bugs": {
