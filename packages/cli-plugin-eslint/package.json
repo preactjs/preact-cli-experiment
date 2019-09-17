@@ -24,7 +24,8 @@
 	},
 	"scripts": {
 		"build": "tsc -b tsconfig.build.json",
-		"test": "echo \"Error: run tests from root\" && exit 1"
+		"test": "echo \"Error: run tests from root\" && exit 1",
+		"prepack": "yarn build"
 	},
 	"bugs": {
 		"url": "https://github.com/SolarLiner/preact-cli-experiment/issues"
