@@ -11,6 +11,9 @@
 	"author": "Nathan Graule <solarliner@gmail.com>",
 	"homepage": "https://github.com/SolarLiner/preact-cli-experiment#readme",
 	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
 	"main": "dist/index.js",
 	"files": [
 		"dist"

@@ -6,7 +6,9 @@
 	"types": "dist/index.d.ts",
 	"author": "SolarLiner",
 	"license": "MIT",
-	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
 	"files": [
 		"dist"
 	],
