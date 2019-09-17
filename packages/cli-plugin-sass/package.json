@@ -16,9 +16,6 @@
 	"files": [
 		"dist"
 	],
-	"publishConfig": {
-		"registry": "https://registry.yarnpkg.com"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/SolarLiner/preact-cli-experiment.git"
