@@ -1,6 +1,6 @@
 {
 	"name": "@preact/cli-plugin-sass",
-	"version": "0.0.0",
+	"version": "0.0.1-alpha.0",
 	"description": "Sass/SCSS plugin for the Preact CLI",
 	"keywords": [
 		"preact",
@@ -32,7 +32,7 @@
 		"url": "https://github.com/SolarLiner/preact-cli-experiment/issues"
 	},
 	"devDependencies": {
-		"@preact/cli": "^0.0.0",
+		"@preact/cli": "^0.0.1-alpha.0",
 		"@types/node": "^12.7.5",
 		"typescript": "^3.6.3"
 	},

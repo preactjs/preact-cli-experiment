@@ -1,6 +1,6 @@
 {
 	"name": "@preact/cli-plugin-legacy-config",
-	"version": "0.0.0",
+	"version": "0.0.1-alpha.0",
 	"author": {
 		"name": "Nathan Graule",
 		"email": "solarliner@gmail.com",
@@ -20,7 +20,7 @@
 		"webpack": "^4.39.1"
 	},
 	"devDependencies": {
-		"@preact/cli": "^0.0.0",
+		"@preact/cli": "^0.0.1-alpha.0",
 		"@types/webpack": "^4.1.4"
 	}
 }
