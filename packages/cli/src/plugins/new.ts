@@ -37,7 +37,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				},
 				devDependencies: features.features.reduce<Record<string, string>>(
 					(obj, p) => Object.assign(obj, { [p]: "latest" }),
-					{ "if-env": "latest" }
+					{ "if-env": "latest", "@preact/cli": "^" + opts.version }
 				)
 			};
 
