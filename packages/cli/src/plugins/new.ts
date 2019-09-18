@@ -10,17 +10,19 @@ import { QuestionCollection } from "inquirer";
 
 type Argv = CommandArguments<{ install: boolean; git: boolean; license: string }>;
 interface Features {
+	name: string;
+	dir: string;
 	features: string[];
 }
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
-	api.registerCommand("new <name> [dir]")
+	api.registerCommand("new [name] [dir]")
 		.option("--no-install", "Disable installation after project generation")
 		.option("--license <license>", "Sets the project open-source license", "MIT")
 		.option("--git", "Initialize a Git repository")
 		.description("Creates a new Preact project")
 		.action(async (name: string, dir?: string, argv?: Argv) => {
-			const features = await api.prompt(getQuestions());
+			const features = await api.prompt(getQuestions(name, dir));
 			if (!dir) dir = "./" + name;
 			const fullDir = path.resolve(opts.cwd, dir);
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
@@ -91,8 +93,21 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		});
 }
 
-function getQuestions(): QuestionCollection<Features> {
+function getQuestions(name?: string, dir?: string): QuestionCollection<Features> {
 	return [
+		{
+			type: "input",
+			name: "name",
+			message: "Name of the project",
+			when: name === undefined
+		},
+		{
+			type: "input",
+			name: "dir",
+			message: "Directory to use",
+			when: dir === undefined,
+			default: (a: { name?: string }) => dir || name || a.name || ""
+		},
 		{
 			type: "checkbox",
 			name: "features",
