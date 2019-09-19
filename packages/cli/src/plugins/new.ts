@@ -69,11 +69,10 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				} catch (err) {
 					api.setStatus(`Error! ${err}`, "error");
 				}
+				api.setStatus("Invoking plugins...");
+				api.getRegistry.deleteCache();
+				await api.getRegistry(fullDir).then(r => r.invoke("install", opts));
 			}
-
-			api.setStatus("Invoking plugins...");
-			api.getRegistry.deleteCache();
-			await api.getRegistry(fullDir).then(r => r.invoke("install", opts));
 
 			if (argv.git) {
 				api.setStatus("Initializing git");
@@ -93,6 +92,13 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 						.join(" or ")}`,
 					"info"
 				);
+				if (features.length > 0) {
+					api.setStatus(
+						"\tYou also need to manually invoke plugins with " +
+							chalk.magenta("preact invoke") +
+							"after installing plugins."
+					);
+				}
 			}
 		});
 }

@@ -184,10 +184,9 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				if (argv.install) {
 					api.setStatus("Installing dependencies");
 					await opts.pm.runInstall();
+					api.setStatus("Invoking plugins...");
+					await api.getRegistry().then(r => r.invoke("install", opts));
 				}
-
-				api.setStatus("Invoking plugins...");
-				await api.getRegistry().then(r => r.invoke("install", opts));
 
 				if (argv.git) {
 					api.setStatus("Initializing git");
@@ -208,6 +207,11 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 							.map(pm => chalk.magenta(pm.getInstallCommand()))
 							.join(" or ")}`,
 						"info"
+					);
+					api.setStatus(
+						"\tYou may also need to invoke plugins after installing dependencies with " +
+							chalk.magenta("preact invoke") +
+							"."
 					);
 				}
 			}
