@@ -17,12 +17,14 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 					pm.runAdd(true, { cwd }, `preact-cli-plugin-${plugin}`).then(() => `preact-cli-plugin-${plugin}`)
 				)
 				.catch(() => api.setStatus("Cannot find plugin " + chalk.magenta(plugin), "fatal"));
+
 			if (typeof name !== "string") return;
 			const apiPlugin = new PluginAPI(cwd, name, requireRelative.resolve(name, cwd), argv.parent);
 			const mod = require(apiPlugin.importBase);
 			if (mod === undefined) api.setStatus(`Package ${chalk.magenta(name)} does not export anything`, "fatal");
+			api.debug("Calling %o from plugin %o", "install", apiPlugin.id);
 			if ("install" in mod) {
-				await normalizePromise(mod.install(plugin, opts));
+				await normalizePromise(mod.install(apiPlugin, opts));
 			}
 			api.setStatus();
 			api.setStatus("Done", "success");
