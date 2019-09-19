@@ -35,9 +35,11 @@ export async function execAsync(command: string, options?: ExecOptions): Promise
 	});
 }
 
-export function memoize<A extends Array<any>, R>(func: (...args: A) => R): (...args: A) => R {
-	const results: Array<[A, R]> = [];
-	return (...args: A) => {
+export function memoize<A extends Array<any>, R>(
+	func: (...args: A) => R
+): ((...args: A) => R) & { deleteCache: () => void } {
+	let results: Array<[A, R]> = [];
+	const f = (...args: A) => {
 		const saved = results.find(r => Object.is(args, r[0]));
 		if (saved === undefined) {
 			const result = func(...args);
@@ -46,6 +48,12 @@ export function memoize<A extends Array<any>, R>(func: (...args: A) => R): (...a
 		}
 		return saved[1];
 	};
+
+	f.deleteCache = () => {
+		results = [];
+	};
+
+	return f;
 }
 
 export function memoizeAsync<A extends Array<any>, R extends Promise<any>>(
