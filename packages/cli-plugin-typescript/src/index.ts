@@ -21,6 +21,7 @@ export async function install(api: PluginAPI, { cwd }: CLIArguments) {
 						target: "es5",
 						module: "esnext",
 						moduleResolution: "node",
+						outDir: "build",
 						allowJs: true,
 						jsx: "react",
 						jsxFactory: "h",
