@@ -12,7 +12,12 @@ import { getPackageManager } from "./api/PackageManager";
 const { version } = require("../package");
 const debug = _debug("@preact/cli");
 
-export async function createProgram(argv?: string[]) {
+export interface CommandObject {
+	program: commander.Command;
+	run: () => void;
+}
+
+export async function createProgram(argv?: string[]): Promise<CommandObject> {
 	if (!argv) argv = process.argv;
 	const program = new commander.Command();
 	program

@@ -1,13 +1,14 @@
 import { dirname, resolve, normalize } from "path";
 import { statSync, readFile, exists, stat } from "fs";
 
-import { CommanderStatic, Command } from "commander";
+import commander from "commander";
 import chalk from "chalk";
 
 import { PluginRegistry } from "./api/registry";
 import { ChildProcess, exec, ExecOptions } from "child_process";
 
-type PromiseValue<P extends Promise<any>> = P extends Promise<infer V> ? V : unknown;
+export type MemoizedFunction<F extends Function> = F & { deleteCache: () => void };
+export type PromiseValue<P extends Promise<any>> = P extends Promise<infer V> ? V : unknown;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getPackageJson(start: string): Promise<{ path: string; contents: any }> {
@@ -35,9 +36,7 @@ export async function execAsync(command: string, options?: ExecOptions): Promise
 	});
 }
 
-export function memoize<A extends Array<any>, R>(
-	func: (...args: A) => R
-): ((...args: A) => R) & { deleteCache: () => void } {
+export function memoize<A extends Array<any>, R>(func: (...args: A) => R): MemoizedFunction<typeof func> {
 	let results: Array<[A, R]> = [];
 	const f = (...args: A) => {
 		const saved = results.find(r => Object.is(args, r[0]));
@@ -58,9 +57,9 @@ export function memoize<A extends Array<any>, R>(
 
 export function memoizeAsync<A extends Array<any>, R extends Promise<any>>(
 	func: (...args: A) => R
-): (...args: A) => Promise<PromiseValue<R>> {
-	const results: Array<[A, R]> = [];
-	return async (...args: A) => {
+): MemoizedFunction<(...args: A) => Promise<PromiseValue<R>>> {
+	let results: Array<[A, R]> = [];
+	const f = async (...args: A) => {
 		const saved = results.find(r => Object.is(args, r[0]));
 		if (saved === undefined) {
 			const result = await func(...args);
@@ -69,6 +68,10 @@ export function memoizeAsync<A extends Array<any>, R extends Promise<any>>(
 		}
 		return saved[1];
 	};
+	f.deleteCache = () => {
+		results = [];
+	};
+	return f;
 }
 
 export function normalizePath(input: string): string {
@@ -112,9 +115,9 @@ export function stringify(a: any): string {
 	return `${a}`;
 }
 
-export const hookPlugins = memoize(_hookPlugins);
+export const hookPlugins: MemoizedFunction<typeof _hookPlugins> = memoize(_hookPlugins);
 
-async function _hookPlugins(program: Command, cwd = process.cwd()) {
+async function _hookPlugins(program: commander.Command, cwd = process.cwd()) {
 	try {
 		const {
 			path,
