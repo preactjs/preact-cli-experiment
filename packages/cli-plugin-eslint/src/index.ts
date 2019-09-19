@@ -7,6 +7,7 @@ function addEsLint(api: PluginAPI, watch = false) {
 	api.chainWebpack(chain =>
 		chain.module
 			.rule("eslint")
+			.enforce("pre")
 			.test(/\.[tj]sx?$/)
 			.exclude.add(/node_modules/)
 			.end()
