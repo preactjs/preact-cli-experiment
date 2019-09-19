@@ -128,7 +128,7 @@ async function _hookPlugins(program: CommanderStatic, cwd = process.cwd()) {
 		Object.keys(devDependencies)
 			.filter(filterPluginDependencies)
 			.forEach(dep => matchingDependencies.add(dep));
-		return PluginRegistry.fromPlugins(path, program, [...matchingDependencies.values()]);
+		return PluginRegistry.fromPlugins(dirname(path), program, [...matchingDependencies.values()]);
 	} catch (err) {
 		return new PluginRegistry();
 	}
