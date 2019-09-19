@@ -1,12 +1,15 @@
+import fs from "fs";
 import path from "path";
+import { promisify } from "util";
 import mkdirp from "mkdirp";
+import deepmerge from "deepmerge";
+import { QuestionCollection } from "inquirer";
 
 import PluginAPI from "../api/plugin";
 import { getPackageManager } from "../api/PackageManager";
 import chalk from "chalk";
 import { addScripts, initGit } from "../setup";
 import { CommandArguments, CLIArguments } from "../types";
-import { QuestionCollection } from "inquirer";
 
 type Argv = CommandArguments<{ install: boolean; git: boolean; license: string }>;
 interface Features {
@@ -14,6 +17,9 @@ interface Features {
 	dir: string;
 	features: string[];
 }
+
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
 
 export function cli(api: PluginAPI, opts: CLIArguments) {
 	api.registerCommand("new [name] [dir]")
@@ -71,7 +77,17 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				}
 				api.setStatus("Invoking plugins...");
 				api.getRegistry.deleteCache();
-				await api.getRegistry(fullDir).then(r => r.invoke("install", opts));
+				const addedDependencies = await api
+					.getRegistry(fullDir)
+					.then(r =>
+						r.invoke<{ dependencies?: object; devDependencies?: object } | undefined>("install", opts)
+					);
+				const pkgPath = path.resolve(fullDir, "package.json");
+				let pkg = await readFile(pkgPath).then(b => JSON.parse(b.toString()));
+				pkg = deepmerge.all([pkg, ...addedDependencies.filter(Boolean)]);
+				await writeFile(pkgPath, JSON.stringify(pkg, null, "\t"));
+				api.setStatus("Installing plugins' additional dependencies...");
+				await opts.pm.runInstall();
 			}
 
 			if (argv.git) {

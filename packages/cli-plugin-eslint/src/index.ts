@@ -3,6 +3,14 @@ import { PluginAPI } from "@preact/cli";
 export const build = (api: PluginAPI) => addEsLint(api, false);
 export const watch = (api: PluginAPI) => addEsLint(api, true);
 
+export function install() {
+	return {
+		devDependencies: {
+			eslint: "^6.4.0"
+		}
+	};
+}
+
 function addEsLint(api: PluginAPI, watch = false) {
 	api.chainWebpack(chain =>
 		chain.module

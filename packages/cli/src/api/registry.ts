@@ -58,7 +58,7 @@ export class PluginRegistry {
 		}
 		const plugin = typeof name === "string" ? this.registry.get(name) : name;
 		return {
-			invoke: async (funcName: string, options: any = {}) => {
+			invoke: async <T = void>(funcName: string, options: any = {}) => {
 				const mod = require(plugin.importBase)[funcName];
 				debug(
 					"Invoking %o from plugin %o " + chalk.grey(!!mod ? "exists" : "doesn't exist"),
@@ -72,7 +72,7 @@ export class PluginRegistry {
 							debug("Plugin %o exec error %O", plugin.id, err);
 						});
 						plugin.setStatus();
-						return result;
+						return result as T;
 					} catch (err) {
 						plugin.setStatus(`Plugin error: ${err}`, "fatal");
 					}
@@ -102,7 +102,7 @@ export class PluginRegistry {
 	 */
 	public async invoke<A = void>(funcName: string, options: any = {}): Promise<(A | undefined)[]> {
 		return Promise.all(
-			[...this.registry.values()].map(async plugin => this.plugin(plugin).invoke(funcName, options))
+			[...this.registry.values()].map(async plugin => this.plugin(plugin).invoke<A>(funcName, options))
 		);
 	}
 }

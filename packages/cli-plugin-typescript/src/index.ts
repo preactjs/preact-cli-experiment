@@ -13,6 +13,7 @@ export const watch = addTypeScript;
 export async function install(api: PluginAPI, { cwd }: CLIArguments) {
 	api.setStatus("Writing TypeScript configuration to disk");
 	const tsconfigPath = path.resolve(cwd, "tsconfig.json");
+	const pkgPath = path.resolve(cwd, "package.json");
 	if (!fs.existsSync(tsconfigPath)) {
 		await api.writeFileTree({
 			"tsconfig.json": JSON.stringify(
@@ -48,8 +49,15 @@ export async function install(api: PluginAPI, { cwd }: CLIArguments) {
 		});
 		await writeFile(tsconfigPath, JSON.stringify(updatedConf, null, "\t"));
 	}
+
 	api.setStatus();
 	api.setStatus("Done", "success");
+
+	return {
+		devDependencies: {
+			typescript: "^3.6.3"
+		}
+	};
 }
 
 function addTypeScript(api: PluginAPI, { cwd }: CLIArguments) {
