@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { resolve } from "path";
 import commander from "commander";
 import _debug from "debug";
