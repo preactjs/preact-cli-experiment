@@ -1,6 +1,6 @@
 {
 	"name": "@preact/cli-plugin-eslint",
-	"version": "0.0.2-alpha.0",
+	"version": "0.0.3-alpha.0",
 	"description": "ESLint linting support for Preact CLI",
 	"keywords": [
 		"preact",
@@ -31,7 +31,7 @@
 		"url": "https://github.com/SolarLiner/preact-cli-experiment/issues"
 	},
 	"devDependencies": {
-		"@preact/cli": "^0.0.2-alpha.0",
+		"@preact/cli": "^0.0.3-alpha.0",
 		"@types/node": "^12.7.5",
 		"eslint": "^6.3.0",
 		"typescript": "^3.6.3"
