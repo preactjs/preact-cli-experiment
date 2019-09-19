@@ -1,7 +1,7 @@
 import { dirname, resolve, normalize } from "path";
 import { statSync, readFile, exists, stat } from "fs";
 
-import { CommanderStatic } from "commander";
+import { CommanderStatic, Command } from "commander";
 import chalk from "chalk";
 
 import { PluginRegistry } from "./api/registry";
@@ -114,7 +114,7 @@ export function stringify(a: any): string {
 
 export const hookPlugins = memoize(_hookPlugins);
 
-async function _hookPlugins(program: CommanderStatic, cwd = process.cwd()) {
+async function _hookPlugins(program: Command, cwd = process.cwd()) {
 	try {
 		const {
 			path,

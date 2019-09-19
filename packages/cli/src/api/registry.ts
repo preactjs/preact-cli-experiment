@@ -1,5 +1,5 @@
 import path from "path";
-import { CommanderStatic } from "commander";
+import { CommanderStatic, Command } from "commander";
 import _debug from "debug";
 import Config from "webpack-chain";
 
@@ -17,7 +17,7 @@ export class PluginRegistry {
 	 * @param commander Commander instance used to register new commands
 	 * @param plugins List of package names to be included in the registry
 	 */
-	public static fromPlugins(base: string, commander: CommanderStatic, plugins: string[]) {
+	public static fromPlugins(base: string, commander: Command, plugins: string[]) {
 		return plugins
 			.map(name => {
 				const path = require.resolve(name);

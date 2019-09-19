@@ -31,7 +31,7 @@ export default class PluginAPI {
 		private readonly base: string,
 		public readonly id: string,
 		public readonly importBase: string,
-		private commander: CommanderStatic
+		private commander: Command
 	) {
 		this.webpackChainers = [];
 		if (debug.extend) this.debug = debug.extend(id);

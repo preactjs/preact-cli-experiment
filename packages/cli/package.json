@@ -19,7 +19,7 @@
 		"prepack": "yarn build"
 	},
 	"bin": {
-		"preact": "dist/cli.js"
+		"preact": "dist/bin/preact.js"
 	},
 	"dependencies": {
 		"@babel/core": "^7.5.5",
