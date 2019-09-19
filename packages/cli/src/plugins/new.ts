@@ -21,9 +21,12 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--license <license>", "Sets the project open-source license", "MIT")
 		.option("--git", "Initialize a Git repository")
 		.description("Creates a new Preact project")
-		.action(async (name: string, dir?: string, argv?: Argv) => {
-			const features = await api.prompt(getQuestions(name, dir));
-			if (!dir) dir = "./" + name;
+		.action(async (_name: string, _dir?: string, argv?: Argv) => {
+			const { name, dir, features } = Object.assign(
+				{ name: _name, dir: _dir || _name },
+				await api.prompt(getQuestions(_name, _dir))
+			);
+			api.debug("Features %o", features);
 			const fullDir = path.resolve(opts.cwd, dir);
 			api.setStatus("Creating project in " + chalk.magenta(fullDir));
 			mkdirp.sync(fullDir);
@@ -37,7 +40,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				dependencies: {
 					preact: "^10.0.0-rc.1"
 				},
-				devDependencies: features.features.reduce<Record<string, string>>(
+				devDependencies: features.reduce<Record<string, string>>(
 					(obj, p) => Object.assign(obj, { [p]: "latest" }),
 					{ "if-env": "latest", "@preact/cli": "^" + opts.version }
 				)
@@ -100,7 +103,8 @@ function getQuestions(name?: string, dir?: string): QuestionCollection<Features>
 			type: "input",
 			name: "name",
 			message: "Name of the project",
-			when: name === undefined
+			when: name === undefined,
+			default: name || ""
 		},
 		{
 			type: "input",
