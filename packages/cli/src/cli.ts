@@ -13,8 +13,12 @@ const { version } = require("../package");
 const debug = _debug("@preact/cli");
 
 export async function createProgram(argv?: string[]) {
+	if (!argv) argv = process.argv;
 	const program = new commander.Command();
-	program.version(version);
+	program
+		.allowUnknownOption(false)
+		.name("preact")
+		.version(version);
 	program.option("--cwd <cwd>", "Sets working directory", process.env.PREACT_CLI_CWD || process.cwd());
 	program.option(
 		"--pm <pm>",
@@ -33,7 +37,7 @@ export async function createProgram(argv?: string[]) {
 		_debug.enable("@preact/cli");
 	});
 
-	const parsedArgs = program.parseOptions(argv || process.argv);
+	const parsedArgs = program.parseOptions(argv);
 	const opts = program.opts();
 	await hookPlugins(program, opts.cwd).then(registry => {
 		debug("opts %O", opts);
@@ -46,6 +50,20 @@ export async function createProgram(argv?: string[]) {
 	});
 	return {
 		program,
-		run: () => program.parse([...parsedArgs.unknown, ...parsedArgs.args])
+		run: () => {
+			debug("Parsing arguments... %o", argv);
+			if (argv.length < 3) {
+				program.help();
+				process.exit(0);
+			} else
+				program
+					.on("command:*", function(this: commander.Command, args) {
+						if (this._execs[args[0]]) return;
+						console.error("Invalid command: " + args[0]);
+						program.help();
+						process.exit(1);
+					})
+					.parse([...parsedArgs.unknown, ...parsedArgs.args]);
+		}
 	};
 }
