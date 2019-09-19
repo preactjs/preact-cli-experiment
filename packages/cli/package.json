@@ -14,7 +14,7 @@
 		"dist"
 	],
 	"scripts": {
-		"dev": "DEBUG=*,-babel ts-node src/cli.ts",
+		"dev": "DEBUG=*,-babel ts-node src/bin/preact.ts",
 		"build": "tsc -b tsconfig.build.json",
 		"prepack": "yarn build"
 	},
