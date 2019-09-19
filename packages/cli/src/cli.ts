@@ -35,7 +35,7 @@ const argv = program.parseOptions(process.argv);
 const opts = program.opts();
 hookPlugins(program, opts.cwd).then(registry => {
 	debug("opts %O", opts);
-	["add", "build", "create", "info", "new"].forEach(name => {
+	["add", "build", "create", "info", "invoke", "new"].forEach(name => {
 		const importPath = require.resolve(resolve(__dirname, "plugins", name));
 		debug("Hooking internal plugin " + chalk.blue(name));
 		registry.add(new PluginAPI(opts.cwd, `@preact/cli:${name}`, importPath, program));
