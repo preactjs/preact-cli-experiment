@@ -160,7 +160,8 @@ export default class PluginAPI {
 	 * Returns the Plugin Registry to interact with installed plugins
 	 */
 	public get getRegistry() {
-		const f = async () => hookPlugins(this.commander, this.base);
+		debug("Hooking plugins from %o", this.base);
+		const f = async (cwd?: string) => hookPlugins(this.commander, cwd || this.base);
 		f.deleteCache = () => hookPlugins.deleteCache();
 
 		return f;
