@@ -1,5 +1,7 @@
 import { ChildProcess, ExecOptions } from "child_process";
-import { execAsync, memoize } from "../utils";
+import { execAsync, memoize, PromiseValue } from "../utils";
+
+type ReturnedProcess = PromiseValue<ReturnType<typeof execAsync>>;
 
 export abstract class PackageManager {
 	name: string;
@@ -7,16 +9,16 @@ export abstract class PackageManager {
 	abstract getAddCommand(dev: boolean, ...packages: string[]): string;
 	abstract getRemoveCommand(...packages: string[]): string;
 	abstract getRunCommand(script: string, extraArguments?: string): string;
-	async runInstall(options?: ExecOptions): Promise<ChildProcess> {
+	async runInstall(options?: ExecOptions): Promise<ReturnedProcess> {
 		return execAsync(this.getInstallCommand(), options);
 	}
-	async runAdd(dev: boolean, options: ExecOptions, ...packages: string[]) {
+	async runAdd(dev: boolean, options: ExecOptions, ...packages: string[]): Promise<ReturnedProcess> {
 		return execAsync(this.getAddCommand(dev, ...packages), options);
 	}
-	async runRemove(options: ExecOptions, ...packages: string[]) {
+	async runRemove(options: ExecOptions, ...packages: string[]): Promise<ReturnedProcess> {
 		return execAsync(this.getRemoveCommand(...packages), options);
 	}
-	async runScript(command: string, extraArguments?: string, options?: ExecOptions) {
+	async runScript(command: string, extraArguments?: string, options?: ExecOptions): Promise<ReturnedProcess> {
 		return execAsync(this.getRunCommand(command, extraArguments), options);
 	}
 }

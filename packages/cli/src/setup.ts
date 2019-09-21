@@ -27,10 +27,10 @@ export async function initGit(folder: string): Promise<boolean> {
 		await execAsync("git add -A", { cwd });
 
 		const gitUser = await execAsync("git config user.name", { cwd })
-			.then<string>(c => c.stdout.read().toString())
+			.then<string>(c => c.stdout)
 			.catch(_ => "Preact CLI");
 		const gitEmail = await execAsync("git config user.email", { cwd })
-			.then<string>(c => c.stdout.read().toString())
+			.then<string>(c => c.stdout)
 			.catch(_ => "preact-cli@users.noreply.github.com");
 
 		await execAsync('git commit -m"Initial commit from Preact CLI"', {

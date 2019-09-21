@@ -1,11 +1,18 @@
-import { dirname, resolve, normalize } from "path";
-import { statSync, readFile, exists, stat } from "fs";
+import { dirname, resolve, normalize, join } from "path";
+import _glob from "glob";
+import fs, { statSync, exists, stat } from "fs";
+import { promisify } from "util";
 
 import commander from "commander";
 import chalk from "chalk";
+import _debug from "debug";
 
 import { PluginRegistry } from "./api/registry";
-import { ChildProcess, exec, ExecOptions } from "child_process";
+import { ChildProcess, exec, ExecOptions, spawn } from "child_process";
+
+const debug = _debug("@preact/cli:utils");
+const glob = promisify(_glob);
+const readFile = promisify(fs.readFile);
 
 export type MemoizedFunction<F extends Function> = F & { deleteCache: () => void };
 export type PromiseValue<P extends Promise<any>> = P extends Promise<infer V> ? V : unknown;
@@ -15,23 +22,21 @@ export async function getPackageJson(start: string): Promise<{ path: string; con
 	const full = resolve(process.cwd(), start);
 	const path = resolve(full, "./package.json");
 	if (statSync(path).isFile()) {
-		return new Promise((resolve, reject) => {
-			readFile(path, (err, data) => {
-				if (err) reject(err);
-				else resolve({ path, contents: JSON.parse(data.toString()) });
-			});
-		});
+		return readFile(path).then(b => ({ path, contents: JSON.parse(b.toString()) }));
 	} else if (full !== "/") {
 		return getPackageJson(dirname(full));
 	}
 	throw new Error("Couldn't find any package.json file");
 }
 
-export async function execAsync(command: string, options?: ExecOptions): Promise<ChildProcess> {
+export async function execAsync(
+	command: string,
+	options?: ExecOptions
+): Promise<Omit<ChildProcess, "stdout" | "stderr"> & { stdout: string; stderr: string }> {
 	return new Promise((resolve, reject) => {
-		const cp = exec(command, options, err => {
+		const cp = exec(command, options, (err, stdout, stderr) => {
 			if (err) reject(err);
-			else resolve(cp);
+			else resolve(Object.assign({}, cp, { stdout: stdout.trim(), stderr: stderr.trim() }));
 		});
 	});
 }
