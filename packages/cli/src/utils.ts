@@ -129,8 +129,10 @@ async function _hookPlugins(program: commander.Command, cwd = process.cwd()) {
 			contents: { dependencies, devDependencies }
 		} = await getPackageJson(cwd);
 
+		const globalPackages = await getGlobalPackages();
+		debug("Global packages: %O", globalPackages);
 		const matchingDependencies = new Set(
-			Object.keys({ ...(await getGlobalPackages()), ...dependencies }).filter(filterPluginDependencies)
+			Object.keys({ ...globalPackages, ...dependencies }).filter(filterPluginDependencies)
 		);
 		if (matchingDependencies.size > 0) {
 			console.warn(chalk.yellow("WARNING") + ": CLI plugins should be added as development dependencies.");
@@ -149,7 +151,7 @@ const getGlobalPackages = memoizeAsync(_getGlobalPackages);
 async function _getGlobalPackages(): Promise<Record<string, string>> {
 	const globalPath = await execAsync("npm get prefix --global").then(cp => cp.stdout);
 	debug("global path %o", globalPath);
-	const files = await glob(join(globalPath, "lib", "node_modules", "**{*,@*/*}", "package.json"));
+	const files = await glob(join(globalPath, "lib", "node_modules", "{*,@*/*}", "package.json"));
 	return files
 		.map(async f => {
 			return JSON.parse(await readFile(f).then(b => b.toString()));
