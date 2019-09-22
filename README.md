@@ -4,21 +4,26 @@ New CLI for Preact featuring a plugin-based system
 
 - [⚛️ Preact CLI (Experiment)](#%e2%9a%9b%ef%b8%8f-preact-cli-experiment)
 - [Install](#install)
-  - [Install for development](#install-for-development)
+	- [Install for development](#install-for-development)
 - [Run](#run)
-  - [Run for development](#run-for-development)
+	- [Run for development](#run-for-development)
 - [Reference guide](#reference-guide)
-  - [The Plugin API](#the-plugin-api)
-    - [List of available hooks](#list-of-available-hooks)
-      - [`cli`](#cli)
-      - [`build` / `watch`](#build--watch)
-    - [`PluginAPI` instance](#pluginapi-instance)
-      - [`setStatus(text?: string, type?: "info" | "error" | "fatal" | "success")`](#setstatustext-string-type-%22info%22--%22error%22--%22fatal%22--%22success%22)
-      - [`registerCommand(name: string, options?: CommandOptions): Command`](#registercommandname-string-options-commandoptions-command)
-      - [`chainWebpack(chainer: WebpackChainer)`](#chainwebpackchainer-webpackchainer)
-      - [`async applyTemplate(fileOrFolder: string, context: Record<string, string>, base?: string): Promise<Record<string, string>>`](#async-applytemplatefileorfolder-string-context-recordstring-string-base-string-promiserecordstring-string)
-      - [`async writeFileTree(files: Record<string, string>, base?: string)`](#async-writefiletreefiles-recordstring-string-base-string)
-      - [`getChains(): WebpackChainer[]`](#getchains-webpackchainer)
+	- [The Plugin API](#the-plugin-api)
+		- [List of available hooks](#list-of-available-hooks)
+			- [`cli`](#cli)
+			- [`build` / `watch`](#build--watch)
+		- [`PluginAPI` instance](#pluginapi-instance)
+			- [`setStatus(text?: string, type?: "info" | "error" | "fatal" | "success")`](#setstatustext-string-type-%22info%22--%22error%22--%22fatal%22--%22success%22)
+			- [`async getRegistry(): Promise<PluginRegistry>`](#async-getregistry-promisepluginregistry)
+			- [`registerCommand(name: string, options?: CommandOptions): Command`](#registercommandname-string-options-commandoptions-command)
+			- [`chainWebpack(chainer: WebpackChainer)`](#chainwebpackchainer-webpackchainer)
+			- [`async applyTemplate(fileOrFolder: string, context: Record<string, string>, base?: string): Promise<Record<string, string>>`](#async-applytemplatefileorfolder-string-context-recordstring-string-base-string-promiserecordstring-string)
+			- [`async writeFileTree(files: Record<string, string>, base?: string)`](#async-writefiletreefiles-recordstring-string-base-string)
+			- [`getChains(): WebpackChainer[]`](#getchains-webpackchainer)
+		- [The Plugin Registry](#the-plugin-registry)
+			- [`plugin(name:string|PluginAPI): RegistryPluginActionWrapper`](#pluginnamestringpluginapi-registrypluginactionwrapper)
+			- [`hookWebpackChain(config: import("webpack-chain")): void`](#hookwebpackchainconfig-import%22webpack-chain%22-void)
+			- [`async invoke<T>(funcName: string, options?:any): Promise<(T|undefined)[]>`](#async-invoketfuncname-string-optionsany-promisetundefined)
 
 # Install
 
@@ -137,6 +142,10 @@ api.setStatus("Creation complete", "success"); // @preact/cli:plugin:foo ✔️ 
 api.setStatus("FATAL ERROR", "fatal"); // @preact/cli:plugin:foo ❌ FATAL ERROR [program exists with code 1]
 ```
 
+#### `async getRegistry(): Promise<PluginRegistry>`
+
+Returns a promise to the current PluginRegistry instance. See the [PluginRegistry](#the-plugin-registry) reference entry for more info.
+
 #### `registerCommand(name: string, options?: CommandOptions): Command`
 
 Registers a new command to add to the CLI. This returns a `Command` object from te `commander` package allowing you to personalize the command, add options, and set an action callback.
@@ -202,3 +211,28 @@ api.writeFileTree(files, "src");
 **WARNING**: Internal function.
 
 Returns an array of all defined `webpack-chain` transform functions by the plugin.
+
+### The Plugin Registry
+
+The plugin registry holds instances of plugins for all installed Preact CLI plugins. This allows you to call other plugins' exposed functions to tap into the CLI's pluggable features to extends its functionalities.
+
+#### `plugin(name:string|PluginAPI): RegistryPluginActionWrapper`
+
+```typescript
+interface RegistryPluginActionWrapper {
+	/** Invoke the plugin's hook named `funcName`. */
+	async invoke<T>(funcName:string, options?:any): T;
+	/** Return the PluginAPI instance wrapping the plugin. */
+	instance(): PluginAPI;
+}
+```
+
+Return a wrapper object on registry action, but for one plugin. `name` can either be a string object or an existing `PluginAPI` object. In the former case, the plugin will be resolved and loaded. In the later case, the instance is directly used.
+
+#### `hookWebpackChain(config: import("webpack-chain")): void`
+
+Transforms the `config` object using all transform functions defined by plugins in the registry. Note that these functions get registered when running hooks, so if you're writing a new command, you *need* to take care of calling the appropriate hook.
+
+#### `async invoke<T>(funcName: string, options?:any): Promise<(T|undefined)[]>`
+
+Invokes the hook `funcName` on every plugin that implements it. The return value is the return value of the hooks.
