@@ -130,7 +130,7 @@ api.chainWebpack(config => config.plugin("terser").use(TerserPlugin, [terserOpti
 Renders a file or folder template into the project. Returns an object with relative filenames as keys, and file contents as values, to be passed to `writeFileTree` to write to disk.
 
 -   `fileOrFolder` is the file or folder to render; is relative to `base` or absolute.
--   `context` is an object containing template variables as keys and their content as values. This context gets merged with a default context which contains the environment variables as `€nv` and the current working directory as `cwd`.
+-   `context` is an object containing template variables as keys and their content as values. This context gets merged with a default context which contains the environment variables as `env` and the current working directory as `cwd`.
 -   `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the project root. When unspecified, it is the project directory.
 
 **Example**:
