@@ -2,40 +2,78 @@
 
 New CLI for Preact featuring a plugin-based system
 
+- [⚛️ Preact CLI (Experiment)](#%e2%9a%9b%ef%b8%8f-preact-cli-experiment)
+- [Install](#install)
+  - [Install for development](#install-for-development)
+- [Run](#run)
+  - [Run for development](#run-for-development)
+- [Reference guide](#reference-guide)
+  - [The Plugin API](#the-plugin-api)
+    - [List of available hooks](#list-of-available-hooks)
+      - [`cli`](#cli)
+      - [`build` / `watch`](#build--watch)
+    - [`PluginAPI` instance](#pluginapi-instance)
+      - [`setStatus(text?: string, type?: "info" | "error" | "fatal" | "success")`](#setstatustext-string-type-%22info%22--%22error%22--%22fatal%22--%22success%22)
+      - [`registerCommand(name: string, options?: CommandOptions): Command`](#registercommandname-string-options-commandoptions-command)
+      - [`chainWebpack(chainer: WebpackChainer)`](#chainwebpackchainer-webpackchainer)
+      - [`async applyTemplate(fileOrFolder: string, context: Record<string, string>, base?: string): Promise<Record<string, string>>`](#async-applytemplatefileorfolder-string-context-recordstring-string-base-string-promiserecordstring-string)
+      - [`async writeFileTree(files: Record<string, string>, base?: string)`](#async-writefiletreefiles-recordstring-string-base-string)
+      - [`getChains(): WebpackChainer[]`](#getchains-webpackchainer)
+
 # Install
+
+```bash
+npm install -g @preact/cli
+```
+
+**WARNING**: This will shadow the existing `preact-cli` endpoint. Uninstall this package to get the stable version back.
+
+## Install for development
 
 This project is a monorepo and uses `yarn` and `lerna` to manage internal and external dependencies.
 
-```bash
-yarn lerna bootstrap
-```
+$mdFormatter$1$mdFormatter$
 
 # Run
 
-**Note**: As it is in its early stages, running the CLI only works in Unix-style environments. Windows users, use MSYS or WSL.
-
-You can run a development version (without transpiling) of the CLI by going to `packages/cli` and running `yarn dev`.
-
 ```bash
-cd packages/cli
-yarn dev [options] <command> [options]
-# Example
-yarn dev --cwd /tmp/ new preact-app # Creates a project in a folder called "preact-app", working in the temp directory
+Usage: preact [options] [command]
+
+Options:
+  -V, --version                              output the version number
+  --cwd <cwd>                                Sets working directory (default is current)
+  --pm <npm|yarn>                            Sets package manager (default NPM)
+  -d, --debug                                Activate debug options
+  -h, --help                                 output usage information
+
+Commands:
+  add <plugin>                               Add a Preact CLI plugin to the project
+  build [options] [src]                      Build the current project into static files
+  watch [options] [src]                      Launch a dev server with hot-reload
+  create [options] [template] [name] [dest]  Legacy command to create a project from either the official template,
+                                             or a user-defined one
+  info                                       Outputs information about your system. Used to troubleshoot issues.
+  invoke [options] [plugin]                  Invokes plugin(s) to finish installation
+  new [options] [name] [dir]                 Creates a new Preact projec
 ```
+
+## Run for development
+
+You can run a development version (without transpiling) of the CLI by going to `packages/cli` and running `yarn dev` .
+
+**Note**: As it is in its early stages, running the CLI this way only works in Unix-style environments. Windows users, use MSYS or WSL.
+
+$mdFormatter$3$mdFormatter$
 
 # Reference guide
 
-The CLI resolves any installed plugins at startup, and hooks into exported functions for them to tap into the CLI.
-With plugins, you can **create new commands**, **mutate the webpack configuration** (uses `webpack-chain`), and even
-create new functionality by invoking other plugins' exported functions.
+The CLI resolves any installed plugins at startup, and hooks into exported functions for them to tap into the CLI. With plugins, you can **create new commands**, **mutate the webpack configuration** (uses `webpack-chain` ), and even create new functionality by invoking other plugins' exported functions.
 
-You can take a look at how the [`new`](packages/cli/src/plugins/new.ts) command is built as an internal plugin, and how
-the [`build`](packages/cli/plugins/build.ts) command hooks into other plugins to mutate the webpack configuration.
+You can take a look at how the [`new`](packages/cli/src/plugins/new.ts) command is built as an internal plugin, and how the [`build`](packages/cli/plugins/build.ts) command hooks into other plugins to mutate the webpack configuration.
 
 ## The Plugin API
 
-Each exported function from a plugin, when called, is passed a `PluginAPI` instance it can use to interact with the CLI.
-Each exported function is used with the following signature:
+Each exported function from a plugin, when called, is passed a `PluginAPI` instance it can use to interact with the CLI. Each exported function is used with the following signature:
 
 ```typescript
 /**
@@ -57,23 +95,23 @@ Gets called on CLI startup.
 function cli(api: PluginAPI, opts: CLIArguments): void {}
 ```
 
-#### `build`
+#### `build` / `watch`
 
 Gets called at the start of the build step.s
 
 ```typescript
 interface BuildArgv {
-	analyze: boolean;
-	brotli: boolean;
-	clean: boolean;
-	dest: string;
-	esm: boolean;
-	inlineCss: boolean;
-	prerender: boolean;
-	preload: boolean;
-	production: boolean;
-	sw: boolean;
-	template?: string;
+    analyze: boolean;
+    brotli: boolean;
+    clean: boolean;
+    dest: string;
+    esm: boolean;
+    inlineCss: boolean;
+    prerender: boolean;
+    preload: boolean;
+    production: boolean;
+    sw: boolean;
+    template?: string;
 }
 
 function build(api: PluginAPI, opts: CLIArguments & BuildArgv): void;
@@ -85,12 +123,9 @@ The Plugin API object is a class instance that's shared between hooks, though a 
 
 #### `setStatus(text?: string, type?: "info" | "error" | "fatal" | "success")`
 
-Prints to terminal the current status of the process. This is used for end-user logging. Proper feedback is important, as otherwise the user might think the CLI is stuck, and _will_ abort it early.
-Internally, Preact CLI uses `ora` to show an animated spinner.
+Prints to terminal the current status of the process. This is used for end-user logging. Proper feedback is important, as otherwise the user might think the CLI is stuck, and _will_ abort it early. Internally, Preact CLI uses `ora` to show an animated spinner.
 
-When called without arguments, this stops and removes the spinner, persisting the last message into stderr.
-When called with one argument, the new status text, the spinner updates its status text.
-When called with two arguments, a logging text and a type identifier, the spinner persists the input text prefixed with an icon corresponding to the type.
+When called without arguments, this stops and removes the spinner, persisting the last message into stderr. When called with one argument, the new status text, the spinner updates its status text. When called with two arguments, a logging text and a type identifier, the spinner persists the input text prefixed with an icon corresponding to the type.
 
 **Examples**:
 
@@ -129,35 +164,35 @@ api.chainWebpack(config => config.plugin("terser").use(TerserPlugin, [terserOpti
 
 Renders a file or folder template into the project. Returns an object with relative filenames as keys, and file contents as values, to be passed to `writeFileTree` to write to disk.
 
--   `fileOrFolder` is the file or folder to render; is relative to `base` or absolute.
--   `context` is an object containing template variables as keys and their content as values. This context gets merged with a default context which contains the environment variables as `env` and the current working directory as `cwd`.
--   `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the project root. When unspecified, it is the project directory.
+- `fileOrFolder` is the file or folder to render; is relative to `base` or absolute.
+- `context` is an object containing template variables as keys and their content as values. This context gets merged with a default context which contains the environment variables as `env` and the current working directory as `cwd` .
+- `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the project root. When unspecified, it is the project directory.
 
 **Example**:
 
-See [The `build` command](packages/cli/src/plugins/build.ts) for an example of plugin using `applyTemplate`.
+See [The `build` command](packages/cli/src/plugins/build.ts) for an example of plugin using `applyTemplate` .
 
 #### `async writeFileTree(files: Record<string, string>, base?: string)`
 
-Writes the given object to disk, relative to `base`.
+Writes the given object to disk, relative to `base` .
 
--   `files` is a dictionary of relative path keys and content values (like the object returned by `applyTemplate`) to write to disk.
--   `base` is the base directory from which all relatives files are mapped to. If unspecified, it is the project directory. If relative, it is relative to the project directory.
+- `files` is a dictionary of relative path keys and content values (like the object returned by `applyTemplate` ) to write to disk.
+- `base` is the base directory from which all relatives files are mapped to. If unspecified, it is the project directory. If relative, it is relative to the project directory.
 
 **Example**
 
 ```typescript
 const project = {
-	"package.json" : JSON.stringify(pkg, null, 2),
-	"README.md": generateReadme();
-	"src/index.js": createEntrypoint({name: "foobar"})
+    "package.json" : JSON.stringify(pkg, null, 2),
+    "README.md": generateReadme();
+    "src/index.js": createEntrypoint({name: "foobar"})
 };
 api.writeFileTree(project);
 
 const sources = {
-	"routes/index.jsx": createRoute("index"),
-	"routes/profile/index.jsx": createRoute("profile", "developit"),
-	"routes/prodile/solarliner.jsx": createRoute("profile", "solarliner")
+    "routes/index.jsx": createRoute("index"),
+    "routes/profile/index.jsx": createRoute("profile", "developit"),
+    "routes/prodile/solarliner.jsx": createRoute("profile", "solarliner")
 }
 api.writeFileTree(files, "src");
 ```
