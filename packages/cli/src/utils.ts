@@ -44,7 +44,8 @@ export async function execAsync(
 export function memoize<A extends Array<any>, R>(func: (...args: A) => R): MemoizedFunction<typeof func> {
 	let results: Array<[A, R]> = [];
 	const f = (...args: A) => {
-		const saved = results.find(r => Object.is(args, r[0]));
+		const saved = results.find(r => arrayIs(args, r[0]));
+		debug("%O", { results, saved });
 		if (saved === undefined) {
 			const result = func(...args);
 			results.push([args, result]);
@@ -65,7 +66,8 @@ export function memoizeAsync<A extends Array<any>, R extends Promise<any>>(
 ): MemoizedFunction<(...args: A) => Promise<PromiseValue<R>>> {
 	let results: Array<[A, R]> = [];
 	const f = async (...args: A) => {
-		const saved = results.find(r => Object.is(args, r[0]));
+		const saved = results.find(r => arrayIs(args, r[0]));
+		debug("%O", { results, saved });
 		if (saved === undefined) {
 			const result = await func(...args);
 			results.push([args, result]);
@@ -119,6 +121,14 @@ export function stringify(a: any): string {
 	}
 	return `${a}`;
 }
+
+export function arrayIs<T>(arr1: T[], arr2: T[]): boolean {
+	if (arr1.length !== arr2.length) return false;
+	for (var i = 0; i < arr1.length; i++) {
+		if (arr1[i] !== arr2[i]) return false;
+	}
+	return true;
+};
 
 export const hookPlugins: MemoizedFunction<typeof _hookPlugins> = memoize(_hookPlugins);
 
