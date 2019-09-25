@@ -5,6 +5,7 @@ import test, { ExecutionContext } from "ava";
 import dirTree from "directory-tree";
 import _rmrf from "rimraf";
 import { createProgram } from "../src/cli";
+import { execAsync } from "../src/utils";
 
 const glob = promisify(_glob);
 const rimraf = promisify(_rmrf);
@@ -13,11 +14,8 @@ const subjectsDir = join(__dirname, "subjects");
 
 async function buildMacro<T>(t: ExecutionContext<T>, input: string, extraArgs: string[] = []) {
 	const projectDir = join(subjectsDir, input);
-	const { run } = await createProgram(["--cwd", projectDir, "build", ...(extraArgs)]);
-	run();
-	setTimeout(() => {
-		t.snapshot(dirTree(join(projectDir, "build")));
-	});
+	const { stdout } = await execAsync(`ts-node ${join(__dirname, "../src/bin/preact.ts")} --cwd "${projectDir}" --only-resolve client ${extraArgs.join(" ")}`);
+	t.snapshot(stdout);
 }
 
 buildMacro.title = (_: string | undefined, input: string, extra?: string[]) => `builds ${input}${extra ? " " + extra.join(" ") : ""}`;
@@ -35,7 +33,7 @@ test("adds build command", async t => {
 	t.true(args.includes("build"));
 });
 
-test.skip(buildMacro, "default");
-test.serial.skip(buildMacro, "prerendering", ["--prerender-urls", "prerender-urls.json"])
-test.serial.skip(buildMacro, "prerendering", ["--prerender-urls", "prerender-urls.js"]);
-test.serial.skip(buildMacro, "prerendering", ["--prerender-urls", "prerender-urls.promise.js"]);
+test(buildMacro, "default");
+test.serial(buildMacro, "prerendering", ["--prerender-urls", "prerender-urls.json"])
+test.serial(buildMacro, "prerendering", ["--prerender-urls", "prerender-urls.js"]);
+test.serial(buildMacro, "prerendering", ["--prerender-urls", "prerender-urls.promise.js"]);
