@@ -61,7 +61,7 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 				process.exit(0);
 			} else
 				program
-					.on("command:*", function(this: commander.Command, args) {
+					.on("command:*", function (this: commander.Command, args) {
 						if (this._execs[args[0]]) return;
 						console.error("Invalid command: " + args[0]);
 						program.help();

@@ -1,6 +1,6 @@
 import fs, { existsSync } from "fs";
-import os, { tmpdir } from "os";
-import path from "path";
+import os, { tmpdir, type } from "os";
+import path, { extname } from "path";
 import util from "util";
 import Config from "webpack-chain";
 import { CommonWebpackEnv } from "./types";
@@ -9,6 +9,7 @@ import mkdirp from "mkdirp";
 import createLoadManifest from "./create-load-manifest";
 import prerender from "./prerender";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import { isFile, normalizePath } from "../../utils";
 
 const readFile = util.promisify(fs.readFile);
 const mkdirP = util.promisify(mkdirp);
@@ -78,7 +79,22 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 		}) as HtmlWebpackPlugin.Options;
 	};
 
-	[{ url: "/" }]
+	let extraUrls = [];
+	const fullPrerenderPath = path.join(env.cwd, env.prerenderUrl);
+	if (isFile(fullPrerenderPath)) {
+		if (extname(env.prerenderUrl) === "json") {
+			extraUrls.push(...JSON.parse(fullPrerenderPath));
+		} else if (extname(env.prerenderUrl) == "js") {
+			const res = require("esm")(fullPrerenderPath);
+			if (typeof res === "function") {
+				extraUrls.push(...await Promise.resolve(res()));
+			} else {
+				extraUrls.push(...await Promise.resolve(res));
+			}
+		}
+	}
+
+	[{ url: "/" }, ...extraUrls]
 		.map(htmlWebpackConfig)
 		.forEach(c =>
 			config.plugin(c.url === "/" ? "html-index" : "html-" + c.url.replace(/\//, "-")).use(HtmlWebpackPlugin, [c])
