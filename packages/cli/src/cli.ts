@@ -47,10 +47,9 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 		debug("opts %O", opts);
 		["add", "build", "create", "info", "invoke", "new"].forEach(name => {
 			const importPath = require.resolve(resolve(__dirname, "plugins", name));
-			debug("Hooking internal plugin " + chalk.blue(name));
 			registry.add(new PluginAPI(opts.cwd, `@preact/cli:${name}`, importPath, program));
 		});
-		registry.invoke("cli", opts);
+		return registry.invoke("cli", opts);
 	});
 	return {
 		program,
@@ -61,7 +60,7 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 				process.exit(0);
 			} else
 				program
-					.on("command:*", function (this: commander.Command, args) {
+					.on("command:*", function(this: commander.Command, args) {
 						if (this._execs[args[0]]) return;
 						console.error("Invalid command: " + args[0]);
 						program.help();
