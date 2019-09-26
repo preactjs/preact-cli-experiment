@@ -20,7 +20,11 @@ import renderHTML from "./render-html";
 
 export default async function configClient(env: CommonWebpackEnv): Promise<Config> {
 	const transformer = env.isProd ? productionConfig : developmentConfig;
-	return transformer(await renderHTML(babelEsmConfig(clientConfiguration(configBase(env), env), env), env), env);
+	return configBase(env)
+		.then(c => clientConfiguration(c, env))
+		.then(c => babelEsmConfig(c, env))
+		.then(c => renderHTML(c, env))
+		.then(c => transformer(c, env));
 }
 
 function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
@@ -78,9 +82,9 @@ function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 				...(fs.existsSync(env.source("manifest.json"))
 					? [{ from: "manifest.json" }]
 					: [
-							{ from: path.resolve(__dirname, "../../../assets/manifest.json"), to: "manifest.json" },
-							{ from: path.resolve(__dirname, "../../../assets/icon.png"), to: "assets/icon.png" }
-					  ]),
+						{ from: path.resolve(__dirname, "../../../assets/manifest.json"), to: "manifest.json" },
+						{ from: path.resolve(__dirname, "../../../assets/icon.png"), to: "assets/icon.png" }
+					]),
 				existsSync(env.source("assets")) && { from: "assets", to: "assets" },
 				{
 					from: path.resolve(__dirname, "../../../assets/sw-debug.js"),

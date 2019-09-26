@@ -4,8 +4,10 @@ import Config from "webpack-chain";
 import configBase from "./config-base";
 import { WebpackEnvironmentBuild } from "./types";
 
-export default function configServer(env: WebpackEnvironmentBuild) {
-	return serverConfiguration(configBase(env), env);
+export default async function configServer(env: WebpackEnvironmentBuild): Promise<Config> {
+	return Promise.resolve(env)
+		.then(configBase)
+		.then(c => serverConfiguration(c, env));
 }
 
 function serverConfiguration(config: Config, env: WebpackEnvironmentBuild) {

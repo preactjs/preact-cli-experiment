@@ -51,7 +51,7 @@ function findAllNodeModules(startDir: string) {
 	}
 }
 
-export default function configBase(env: CommonWebpackEnv) {
+export default async function configBase(env: CommonWebpackEnv): Promise<Config> {
 	const { cwd, isProd, isWatch, src, source } = env;
 	const config = new Config();
 
@@ -102,7 +102,9 @@ export default function configBase(env: CommonWebpackEnv) {
 		.end()
 		.alias.merge({
 			style: source("style"),
-			"preact-cli-entrypoint": source("index"),
+			"preact-cli-entrypoint": await Promise.resolve(source("."))
+				.then(s => require.resolve(s))
+				.catch(() => require.resolve(source(".."))),
 			// preact-compat aliases for supporting React dependencies:
 			react: compat,
 			"react-dom": compat,
