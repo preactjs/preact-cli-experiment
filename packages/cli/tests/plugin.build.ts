@@ -15,9 +15,11 @@ const subjectsDir = join(__dirname, "subjects");
 async function buildMacro<T>(t: ExecutionContext<T>, input: string, extraArgs: string[] = []) {
 	const projectDir = join(subjectsDir, input);
 	await execAsync(
-		`ts-node ${join(__dirname, "../src/bin/preact.ts")} build --cwd "${projectDir}" ${extraArgs.join(" ")}`
+		`ts-node ${join(__dirname, "../src/bin/preact.ts")} build --cwd "${projectDir}" ${extraArgs.join(" ")}`,
+		{ env: { ...process.env, DEBUG: "@preact/cli*" } }
 	).catch(m => t.fail(m));
 	const tree = directoryTree(join(projectDir, "build"));
+	t.truthy(tree);
 	t.snapshot(tree);
 }
 
