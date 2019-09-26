@@ -45,12 +45,12 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 		.option("--template <path>", "Use a custom template to render the HTML", undefined)
 		.option("--no-inline-css", "Disable inlining of CSS")
 		.option("--no-prerender", "Don't prerender URLs")
-		.option("--prerender-urls <url>", "URLs to prerender", path.join(opts.cwd, "prerender-urls.json"))
+		.option("--prerender-urls <url>", "URLs to prerender", "prerender-urls.json")
 		.option("--only-resolve <type>", "Don't build, just print the JSON to stdout")
 		.action(async (src?: string, argv?: BuildArgv) => {
 			const { cwd, pm } = opts;
-			src = src !== undefined ? path.join(cwd, src) : cwd;
-			const dest = path.join(src, argv.dest);
+			src = src !== undefined ? path.resolve(cwd, src) : cwd;
+			const dest = path.resolve(cwd, argv.dest);
 			api.debug("%o", { src, dest });
 			// Set new values back into argv object
 			Object.assign(argv, { src, dest });

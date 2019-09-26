@@ -32,8 +32,9 @@ async function createExtraEnv(api: PluginAPI, env: WebpackEnvironment<BuildArgv 
 	const isWatch = !!watch;
 	const isProd = isWatch ? false : (env as WebpackEnvironment<BuildArgv>).production;
 	const cwd = path.resolve(env.cwd || process.cwd());
-	let src = path.resolve(env.cwd, "src");
-	src = isDir(src) ? src : env.cwd;
+	let src = path.resolve(cwd, "src");
+	src = (await isDir(src)) ? src : cwd;
+	api.debug("%O", { cwd, src });
 	const source = (dir: string) => path.resolve(src, dir);
 	const readFile = util.promisify(fs.readFile);
 	const packageFilepath = path.resolve(env.cwd, "./package.json");

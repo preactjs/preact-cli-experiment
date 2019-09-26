@@ -56,7 +56,6 @@ export default async function configBase(env: CommonWebpackEnv): Promise<Config>
 	const config = new Config();
 
 	// Apply base-level `env` values
-	env.dest = path.resolve(cwd, env.dest || "build");
 	env.manifest = readJson(source("manifest.json")) || {};
 	env.pkg = readJson(path.resolve(cwd, "package.json")) || {};
 
@@ -102,9 +101,7 @@ export default async function configBase(env: CommonWebpackEnv): Promise<Config>
 		.end()
 		.alias.merge({
 			style: source("style"),
-			"preact-cli-entrypoint": await Promise.resolve(source("."))
-				.then(s => require.resolve(s))
-				.catch(() => require.resolve(source(".."))),
+			"preact-cli-entrypoint": source("index"),
 			// preact-compat aliases for supporting React dependencies:
 			react: compat,
 			"react-dom": compat,

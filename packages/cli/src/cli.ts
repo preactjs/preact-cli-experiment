@@ -66,7 +66,7 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 						program.help();
 						process.exit(1);
 					})
-					.parse([...parsedArgs.unknown, ...parsedArgs.args]);
+					.parse([...parsedArgs.args, ...parsedArgs.unknown]);
 		}
 	};
 }
