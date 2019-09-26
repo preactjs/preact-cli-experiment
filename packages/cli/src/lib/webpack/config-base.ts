@@ -35,7 +35,7 @@ function readJson(file: string) {
 
 function findAllNodeModules(startDir: string) {
 	let dir = path.resolve(startDir);
-	const dirs = [];
+	const dirs = [path.resolve(__dirname, "../../../node_modules")]; // Add the Preact CLI node modules first
 	const { root } = path.parse(startDir);
 
 	// eslint-disable-next-line no-constant-condition
