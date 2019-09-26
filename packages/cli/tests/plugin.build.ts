@@ -15,7 +15,10 @@ const subjectsDir = join(__dirname, "subjects");
 async function buildMacro<T>(t: ExecutionContext<T>, input: string, extraArgs: string[] = []) {
 	const projectDir = join(subjectsDir, input);
 	t.log("Installing dependencies...");
-	await execAsync("yarn", { cwd: projectDir });
+	await execAsync("yarn", { cwd: projectDir }).catch(m => {
+		t.log("yarn failed to run", m.stdout, m.stderr);
+		t.fail();
+	});
 	t.log("Running build...");
 	await execAsync(`ts-node ${join(__dirname, "../src/bin/preact.ts")} build ${extraArgs.join(" ")}`, {
 		cwd: projectDir
