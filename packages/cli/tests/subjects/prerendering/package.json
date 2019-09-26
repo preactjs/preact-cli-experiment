@@ -1,4 +1,9 @@
 {
-  "private": true,
-  "name": "preact-prerender"
+	"private": true,
+	"name": "preact-prerender",
+	"dependencies": {
+		"preact": "^10.0.0-rc.3",
+		"preact-render-to-string": "^5.0.6",
+		"preact-router": "^3.0.1"
+	}
 }
