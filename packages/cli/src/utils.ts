@@ -35,7 +35,7 @@ export async function execAsync(
 ): Promise<Omit<ChildProcess, "stdout" | "stderr"> & { stdout: string; stderr: string }> {
 	return new Promise((resolve, reject) => {
 		const cp = exec(command, options, (err, stdout, stderr) => {
-			if (err) reject(err);
+			if (err) reject(Object.assign(err, { stdout: stdout.trim(), stderr: stderr.trim() }));
 			else resolve(Object.assign({}, cp, { stdout: stdout.trim(), stderr: stderr.trim() }));
 		});
 	});
