@@ -195,7 +195,14 @@ export default async function configBase(env: CommonWebpackEnv): Promise<Config>
 		.use(webpack.NoEmitOnErrorsPlugin)
 		.end()
 		.plugin("define")
-		.use(webpack.DefinePlugin, [{ "process.env.NODE_ENV": JSON.stringify(isProd ? "production" : "development") }])
+		.use(webpack.DefinePlugin, [
+			{
+				"process.env.NODE_ENV": JSON.stringify(isProd ? "production" : "development"),
+				"process.env.RHL": JSON.stringify(env.rhl),
+				"process.env.ADD_SW": JSON.stringify(env.sw),
+				"process.env.ES_BUILD": JSON.stringify(env.esm)
+			}
+		])
 		.end()
 		.plugin("provide")
 		.use(webpack.ProvidePlugin, [{ h: ["preact", "h"], Fragment: ["preact", "Fragment"] }])
