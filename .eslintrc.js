@@ -4,6 +4,7 @@ module.exports = {
 	plugins: ["@typescript-eslint", "prettier", "ava"],
 	parserOptions: {
 		ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
+		ecmaFeatures: { jsx: true },
 		sourceType: "module" // Allows for the use of imports
 	},
 	rules: {

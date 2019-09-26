@@ -1,8 +1,10 @@
+/* eslint-disable */
 import { h, Component } from 'preact';
 
 const delay = t => new Promise(r => setTimeout(r, t));
 
 export default class App extends Component {
+	state = { render: false }
 	async componentDidMount() {
 		await delay(200);
 		this.setState({
