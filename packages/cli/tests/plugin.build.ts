@@ -23,7 +23,7 @@ async function buildMacro<T>(t: ExecutionContext<T>, input: string, extraArgs: s
 	await execAsync(`ts-node ${join(__dirname, "../src/bin/preact.ts")} build ${extraArgs.join(" ")}`, {
 		cwd: projectDir
 	}).catch(m => {
-		t.log(m.stdout, m.stderr);
+		t.log("Build failed", m.stdout, m.stderr);
 		t.fail();
 	});
 	const tree = directoryTree(join(projectDir, "build"));
