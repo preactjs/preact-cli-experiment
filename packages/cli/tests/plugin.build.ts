@@ -14,10 +14,15 @@ const subjectsDir = join(__dirname, "subjects");
 
 async function buildMacro<T>(t: ExecutionContext<T>, input: string, extraArgs: string[] = []) {
 	const projectDir = join(subjectsDir, input);
-	await execAsync(
-		`ts-node ${join(__dirname, "../src/bin/preact.ts")} build --cwd "${projectDir}" ${extraArgs.join(" ")}`,
-		{ env: { ...process.env, DEBUG: "@preact/cli*" } }
-	).catch(m => t.fail(m));
+	t.log("Installing dependencies...");
+	await execAsync("yarn", { cwd: projectDir });
+	t.log("Running build...");
+	await execAsync(`ts-node ${join(__dirname, "../src/bin/preact.ts")} build ${extraArgs.join(" ")}`, {
+		cwd: projectDir
+	}).catch(m => {
+		t.log(m.stdout, m.stderr);
+		t.fail();
+	});
 	const tree = directoryTree(join(projectDir, "build"));
 	t.truthy(tree);
 	t.snapshot(tree);
@@ -26,8 +31,9 @@ async function buildMacro<T>(t: ExecutionContext<T>, input: string, extraArgs: s
 buildMacro.title = (_: string | undefined, input: string, extra?: string[]) =>
 	`builds ${input}${extra ? " " + extra.join(" ") : ""}`;
 
-test.afterEach(async t => {
-	const dirs = await glob(join(subjectsDir, "**/build"));
+test.beforeEach(async t => {
+	t.log("Cleaning subjects directories..");
+	const dirs = await glob(join(subjectsDir, "**/{build,node_modules}"));
 	await Promise.all(dirs.map(v => rimraf(v)));
 });
 
