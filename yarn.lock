@@ -5463,12 +5463,12 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 ejs-loader@^0.3.3:
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/ejs-loader/-/ejs-loader-0.3.3.tgz#021aa196b8858f05b6f095576c4afe61012ccc2e"
-  integrity sha512-1pQNFYu+4VIeLLNrSZ8QaiyFk9oXv8koUyQ2Pz5k0dw89HHjeiliTPQ46GfqAzCqJ8cEq8QFNj/HsVjyIuzKEA==
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/ejs-loader/-/ejs-loader-0.3.5.tgz#1105ac1a262e3f36079e8b2bd6ec6058434f60e7"
+  integrity sha512-96Zt17hrKINvbdYUxk5TC5a18J9lIdKLPKIngl9dSyZBsNDKAFibY3z/VBcyq0jWGQkIemLsjdIJIAu4T0CB8A==
   dependencies:
     loader-utils "^0.2.7"
-    lodash "^4.17.11"
+    lodash "^4.17.15"
 
 ejs@^2.6.1:
   version "2.7.1"
