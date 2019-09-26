@@ -124,11 +124,11 @@ export function stringify(a: any): string {
 
 export function arrayIs<T>(arr1: T[], arr2: T[]): boolean {
 	if (arr1.length !== arr2.length) return false;
-	for (var i = 0; i < arr1.length; i++) {
+	for (let i = 0; i < arr1.length; i++) {
 		if (arr1[i] !== arr2[i]) return false;
 	}
 	return true;
-};
+}
 
 export const hookPlugins: MemoizedFunction<typeof _hookPlugins> = memoize(_hookPlugins);
 
