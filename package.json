@@ -11,11 +11,14 @@
 		"build": "lerna run build --stream",
 		"test": "ava-ts | tap-notify | tap-diff",
 		"test:watch": "ava-ts --watch",
-		"test:ci": "ava-ts | faucet"
+		"test:ci": "ava-ts | faucet",
+		"lint": "eslint .",
+		"lint:fix": "eslint --fix ."
 	},
 	"devDependencies": {
 		"@types/debug": "^4.1.5",
 		"@types/node": "^12.7.4",
+		"@typescript-eslint/eslint-plugin": "^2.3.1",
 		"@typescript-eslint/parser": "^2.1.0",
 		"directory-tree": "^2.2.4",
 		"eslint": "^6.3.0",
@@ -23,7 +26,9 @@
 		"eslint-plugin-ava": "^8.0.0",
 		"eslint-plugin-prettier": "^3.1.0",
 		"faucet": "^0.0.1",
+		"husky": "^3.0.5",
 		"lerna": "^3.16.4",
+		"lint-staged": "^9.4.0",
 		"prettier": "^1.18.2",
 		"rimraf": "^3.0.0",
 		"tap-diff": "^0.1.1",
@@ -47,6 +52,21 @@
 		"verbose": true,
 		"extensions": [
 			"ts"
+		]
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.{js, ts, jsx, tsx, d.ts}": [
+			"eslint --fix",
+			"git add"
+		],
+		"*.{json, css, scss, md, yml}": [
+			"prettier --write",
+			"git add"
 		]
 	}
 }
