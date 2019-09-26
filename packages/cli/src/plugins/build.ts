@@ -18,7 +18,7 @@ export type BuildArgv = CommandArguments<{
 	inlineCss: boolean;
 	onlyResolve?: string;
 	prerender: boolean;
-	prerenderUrl: string;
+	prerenderUrls: string;
 	preload: boolean;
 	production: boolean;
 	sw: boolean;
@@ -93,8 +93,8 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			try {
 				await runWebpack(api, buildOptions, config => registry.hookWebpackChain(config));
 			} catch (err) {
-				api.setStatus(`Error! ${err}`, "fatal");
 				if (api.debug.enabled) throw err;
+				api.setStatus(`Error! ${err}`, "fatal");
 			}
 		});
 	api.registerCommand("watch [src]")

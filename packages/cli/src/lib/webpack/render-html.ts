@@ -3,17 +3,20 @@ import os, { tmpdir, type } from "os";
 import path, { extname } from "path";
 import util from "util";
 import Config from "webpack-chain";
-import { CommonWebpackEnv } from "./types";
-import { templateVar, renderTemplate } from "../template";
+import _debug from "debug";
+import HtmlWebpackPlugin from "html-webpack-plugin";
 import mkdirp from "mkdirp";
 import createLoadManifest from "./create-load-manifest";
 import prerender from "./prerender";
-import HtmlWebpackPlugin from "html-webpack-plugin";
+import { CommonWebpackEnv } from "./types";
+import { templateVar, renderTemplate } from "../template";
 import { isFile, normalizePath } from "../../utils";
 
 const readFile = util.promisify(fs.readFile);
 const mkdirP = util.promisify(mkdirp);
 const writeFile = util.promisify(fs.writeFile);
+
+const debug = _debug("@preact/cli:webpack");
 
 export default async function renderHTML(config: Config, env: CommonWebpackEnv): Promise<Config> {
 	const exists = util.promisify(fs.exists);
@@ -79,20 +82,23 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 		}) as HtmlWebpackPlugin.Options;
 	};
 
-	let extraUrls = [];
-	const fullPrerenderPath = path.join(env.cwd, env.prerenderUrl);
+	const extraUrls = [];
+	const fullPrerenderPath = path.join(env.cwd, env.prerenderUrls);
+	debug("prerender-urls path %o", fullPrerenderPath);
 	if (isFile(fullPrerenderPath)) {
-		if (extname(env.prerenderUrl) === "json") {
+		if (extname(env.prerenderUrls) === "json") {
 			extraUrls.push(...JSON.parse(fullPrerenderPath));
-		} else if (extname(env.prerenderUrl) == "js") {
+		} else if (extname(env.prerenderUrls) == "js") {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const res = require("esm")(fullPrerenderPath);
 			if (typeof res === "function") {
-				extraUrls.push(...await Promise.resolve(res()));
+				extraUrls.push(...(await Promise.resolve(res())));
 			} else {
-				extraUrls.push(...await Promise.resolve(res));
+				extraUrls.push(...(await Promise.resolve(res)));
 			}
 		}
 	}
+	debug("extra urls %O", extraUrls);
 
 	[{ url: "/" }, ...extraUrls]
 		.map(htmlWebpackConfig)
