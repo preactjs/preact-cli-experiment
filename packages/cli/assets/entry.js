@@ -3,7 +3,7 @@
 
 import preact from "preact";
 
-const h = preact;
+const h = preact.h;
 let hydrate;
 if ("hydrate" in preact) hydrate = preact.hydrate;
 else hydrate = preact.render;
