@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/camelcase, @typescript-eslint/no-var-requires */
 /* global __webpack_public_path__ */
 
-import preact from "preact";
+import * as preact from "preact";
 
 const h = preact.h;
 let hydrate;
