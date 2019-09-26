@@ -101,6 +101,7 @@ export class PluginRegistry {
 	 * @param options Extra options to pass to the invoked options
 	 */
 	public async invoke<A = void>(funcName: string, options: any = {}): Promise<(A | undefined)[]> {
+		debug("calling function %o on plugins %o", funcName, [...this.registry.values()].map(p => p.id));
 		return Promise.all(
 			[...this.registry.values()].map(async plugin => this.plugin(plugin).invoke<A>(funcName, options))
 		);
