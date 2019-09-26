@@ -1,0 +1,10 @@
+dist: bionic
+language: node_js
+node_js:
+  - lts/*
+  - node
+git:
+  depth: 1
+cache: yarn
+
+script: yarn test
