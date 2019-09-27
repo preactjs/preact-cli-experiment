@@ -1,9 +1,12 @@
 # ⚛️ Preact CLI (Experiment)
 
-New CLI for Preact featuring a plugin-based system
+[![Build Status](https://travis-ci.org/preactjs/preact-cli-experiment.svg?branch=master)](https://travis-ci.org/preactjs/preact-cli-experiment)
+
+New CLI for Preact featuring a plugin-based system.
+
+<!-- prettier-ignore-start -->
 
 - [⚛️ Preact CLI (Experiment)](#%e2%9a%9b%ef%b8%8f-preact-cli-experiment)
-- [Install](#install)
 	- [Install for development](#install-for-development)
 - [Run](#run)
 	- [Run for development](#run-for-development)
@@ -25,7 +28,9 @@ New CLI for Preact featuring a plugin-based system
 			- [`hookWebpackChain(config: import("webpack-chain")): void`](#hookwebpackchainconfig-import%22webpack-chain%22-void)
 			- [`async invoke<T>(funcName: string, options?:any): Promise<(T|undefined)[]>`](#async-invoketfuncname-string-optionsany-promisetundefined)
 
-# Install
+<!-- prettier-ignore-end -->
+
+ # Install
 
 ```bash
 npm install -g @preact/cli
@@ -36,8 +41,6 @@ npm install -g @preact/cli
 ## Install for development
 
 This project is a monorepo and uses `yarn` and `lerna` to manage internal and external dependencies.
-
-$mdFormatter$1$mdFormatter$
 
 # Run
 
@@ -67,8 +70,6 @@ Commands:
 You can run a development version (without transpiling) of the CLI by going to `packages/cli` and running `yarn dev` .
 
 **Note**: As it is in its early stages, running the CLI this way only works in Unix-style environments. Windows users, use MSYS or WSL.
-
-$mdFormatter$3$mdFormatter$
 
 # Reference guide
 
@@ -220,10 +221,10 @@ The plugin registry holds instances of plugins for all installed Preact CLI plug
 
 ```typescript
 interface RegistryPluginActionWrapper {
-	/** Invoke the plugin's hook named `funcName`. */
-	async invoke<T>(funcName:string, options?:any): T;
-	/** Return the PluginAPI instance wrapping the plugin. */
-	instance(): PluginAPI;
+    /** Invoke the plugin's hook named `funcName`. */
+    async invoke<T>(funcName:string, options?:any): T;
+    /** Return the PluginAPI instance wrapping the plugin. */
+    instance(): PluginAPI;
 }
 ```
 
@@ -231,7 +232,7 @@ Return a wrapper object on registry action, but for one plugin. `name` can eithe
 
 #### `hookWebpackChain(config: import("webpack-chain")): void`
 
-Transforms the `config` object using all transform functions defined by plugins in the registry. Note that these functions get registered when running hooks, so if you're writing a new command, you *need* to take care of calling the appropriate hook.
+Transforms the `config` object using all transform functions defined by plugins in the registry. Note that these functions get registered when running hooks, so if you're writing a new command, you _need_ to take care of calling the appropriate hook.
 
 #### `async invoke<T>(funcName: string, options?:any): Promise<(T|undefined)[]>`
 
