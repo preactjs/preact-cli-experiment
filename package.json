@@ -12,6 +12,9 @@
 		"test": "ava-ts | tap-notify | faucet",
 		"test:watch": "ava-ts --watch",
 		"test:ci": "ava-ts | faucet",
+		"test:integration": "ava-ts --files tests/* | tap-notify | faucet",
+		"test:integration:ci": "ava-ts --files tests/* | faucet",
+		"test:integration:watch": "ava-ts --files tests/* --watch",
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix ."
 	},

@@ -1,8 +1,0 @@
-{
-	"private": true,
-	"name": "preact-babelrc",
-	"dependencies": {
-		"preact": "^10.0.0-rc.3",
-		"preact-render-to-string": "^5.0.6"
-	}
-}

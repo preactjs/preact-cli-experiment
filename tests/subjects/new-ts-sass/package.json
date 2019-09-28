@@ -1,0 +1,21 @@
+{
+	"name": "new-ts-sass",
+	"version": "0.1.0",
+	"license": "MIT",
+	"author": {},
+	"scripts": {
+		"build": "preact build",
+		"start": "if-env NODE_ENV=production && npm run -s serve || npm run -s watch",
+		"watch": "preact watch"
+	},
+	"dependencies": {
+		"preact": "^10.0.0-rc.1"
+	},
+	"devDependencies": {
+		"if-env": "latest",
+		"@preact/cli": "^0.0.4-alpha.0",
+		"@preact/cli-plugin-typescript": "latest",
+		"@preact/cli-plugin-sass": "latest",
+		"@preact/cli-plugin-eslint": "latest"
+	}
+}
