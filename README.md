@@ -7,11 +7,14 @@ New CLI for Preact featuring a plugin-based system.
 <!-- prettier-ignore-start -->
 
 - [⚛️ Preact CLI (Experiment)](#%e2%9a%9b%ef%b8%8f-preact-cli-experiment)
+- [Install](#install)
 	- [Install for development](#install-for-development)
 - [Run](#run)
 	- [Run for development](#run-for-development)
-- [Reference guide](#reference-guide)
+- [Plugin implementation documentation](#plugin-implementation-documentation)
 	- [The Plugin API](#the-plugin-api)
+- [Reference guide](#reference-guide)
+	- [The Plugin API](#the-plugin-api-1)
 		- [List of available hooks](#list-of-available-hooks)
 			- [`cli`](#cli)
 			- [`build` / `watch`](#build--watch)
@@ -70,6 +73,17 @@ Commands:
 You can run a development version (without transpiling) of the CLI by going to `packages/cli` and running `yarn dev` .
 
 **Note**: As it is in its early stages, running the CLI this way only works in Unix-style environments. Windows users, use MSYS or WSL.
+
+# Plugin implementation documentation
+
+The plugin system is composed of two parts, the Plugin API and the Registry. They each each tackle two parts of the
+overall plugin system in this version of the Preact CLI.
+
+## The Plugin API
+
+The Plugin API serves two purposes; it acts as an internal wrapper for user plugins from within the CLI, and as the
+interface in plugins to interact with various part of the CLI (like creating new commands, or mutating the webpack
+build, see the [reference guide](#reference-guide)).
 
 # Reference guide
 
