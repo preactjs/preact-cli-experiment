@@ -1,6 +1,7 @@
 # ⚛️ Preact CLI (Experiment)
 
-[![Build Status](https://travis-ci.org/preactjs/preact-cli-experiment.svg?branch=master)](https://travis-ci.org/preactjs/preact-cli-experiment)
+[![Build
+Status](https://travis-ci.org/preactjs/preact-cli-experiment.svg?branch=master)](https://travis-ci.org/preactjs/preact-cli-experiment)
 
 New CLI for Preact featuring a plugin-based system.
 
@@ -13,6 +14,9 @@ New CLI for Preact featuring a plugin-based system.
 	- [Run for development](#run-for-development)
 - [Plugin implementation documentation](#plugin-implementation-documentation)
 	- [The Plugin API](#the-plugin-api)
+	- [The Registry](#the-registry)
+		- [Plugin discovery process](#plugin-discovery-process)
+		- [Interaction with plugins](#interaction-with-plugins)
 - [Reference guide](#reference-guide)
 	- [The Plugin API](#the-plugin-api-1)
 		- [List of available hooks](#list-of-available-hooks)
@@ -30,6 +34,24 @@ New CLI for Preact featuring a plugin-based system.
 			- [`plugin(name:string|PluginAPI): RegistryPluginActionWrapper`](#pluginnamestringpluginapi-registrypluginactionwrapper)
 			- [`hookWebpackChain(config: import("webpack-chain")): void`](#hookwebpackchainconfig-import%22webpack-chain%22-void)
 			- [`async invoke<T>(funcName: string, options?:any): Promise<(T|undefined)[]>`](#async-invoketfuncname-string-optionsany-promisetundefined)
+              "success")`](#setstatustext-string-type-%22info%22--%22error%22--%22fatal%22--%22success%22)
+            - [`async getRegistry(): Promise<PluginRegistry>`](#async-getregistry-promisepluginregistry)
+            - [`registerCommand(name: string, options?: CommandOptions):
+              Command`](#registercommandname-string-options-commandoptions-command)
+            - [`chainWebpack(chainer: WebpackChainer)`](#chainwebpackchainer-webpackchainer)
+            - [`async applyTemplate(fileOrFolder: string, context: Record<string, string>, base?: string):
+              Promise<Record<string,
+              string>>`](#async-applytemplatefileorfolder-string-context-recordstring-string-base-string-promiserecordstring-string)
+            - [`async writeFileTree(files: Record<string, string>, base?:
+              string)`](#async-writefiletreefiles-recordstring-string-base-string)
+            - [`getChains(): WebpackChainer[]`](#getchains-webpackchainer)
+        - [The Plugin Registry](#the-plugin-registry)
+            - [`plugin(name:string|PluginAPI):
+              RegistryPluginActionWrapper`](#pluginnamestringpluginapi-registrypluginactionwrapper)
+            - [`hookWebpackChain(config: import("webpack-chain")):
+              void`](#hookwebpackchainconfig-import%22webpack-chain%22-void)
+            - [`async invoke<T>(funcName: string, options?:any):
+              Promise<(T|undefined)[]>`](#async-invoketfuncname-string-optionsany-promisetundefined)
 
 <!-- prettier-ignore-end -->
 
@@ -72,7 +94,8 @@ Commands:
 
 You can run a development version (without transpiling) of the CLI by going to `packages/cli` and running `yarn dev` .
 
-**Note**: As it is in its early stages, running the CLI this way only works in Unix-style environments. Windows users, use MSYS or WSL.
+**Note**: As it is in its early stages, running the CLI this way only works in Unix-style environments. Windows users,
+use MSYS or WSL.
 
 # Plugin implementation documentation
 
@@ -83,17 +106,47 @@ overall plugin system in this version of the Preact CLI.
 
 The Plugin API serves two purposes; it acts as an internal wrapper for user plugins from within the CLI, and as the
 interface in plugins to interact with various part of the CLI (like creating new commands, or mutating the webpack
-build, see the [reference guide](#reference-guide)).
+build, see the [reference guide](#reference-guide)). Internally, it allows the Registry to pass on all defined webpack
+mutation functions to the builder.
+
+## The Registry
+
+The registry is the module that does the work to discover and load plugins. It also manages invoking plugin hooks, and
+finally sending the mutated webpack build (still in `webpack-chain` form) to the builder part of the CLI.
+
+### Plugin discovery process
+
+The registry looks at the global and project `package.json` file, looking through the (development, in case of the local
+file) dependencies for any plugin whose slug matches either `preact-cli-plugin-*` or `@preact/cli-plugin-*`, the latter
+being there to differenciate officially-supported plugins from user-provided ones. This has the advantage of not
+requiring the user to write a separate manifest file or manually add in plugins to the configuration. This also means
+that CLI plugins can be installed globally, allowing 3rd parties to augment the CLI itself.
+
+It should be noted that plugins are *not* wrapped until needed. The registry has a `plugin(id:string)` function which
+wraps on-demand the plugin, and returns a set of utility function to interact with it.
+
+### Interaction with plugins
+
+The registry exposes a `plugin(id)` function, which, as noted above, returns an object of utility functions, containing
+an `invoke(hook)` function acting the same as the Registry's `invoke(hook)` function but for only one plugin, and
+another retuning the `PluginAPI` instance wrapping it.
+
+The registry also exposes an `invoke(hook)`. This function invokes the passed hook for all plugins in the registry
+should they exist, and return an array of all return values.
 
 # Reference guide
 
-The CLI resolves any installed plugins at startup, and hooks into exported functions for them to tap into the CLI. With plugins, you can **create new commands**, **mutate the webpack configuration** (uses `webpack-chain` ), and even create new functionality by invoking other plugins' exported functions.
+The CLI resolves any installed plugins at startup, and hooks into exported functions for them to tap into the CLI. With
+plugins, you can **create new commands**, **mutate the webpack configuration** (uses `webpack-chain` ), and even create
+new functionality by invoking other plugins' exported functions.
 
-You can take a look at how the [`new`](packages/cli/src/plugins/new.ts) command is built as an internal plugin, and how the [`build`](packages/cli/plugins/build.ts) command hooks into other plugins to mutate the webpack configuration.
+You can take a look at how the [`new`](packages/cli/src/plugins/new.ts) command is built as an internal plugin, and how
+the [`build`](packages/cli/plugins/build.ts) command hooks into other plugins to mutate the webpack configuration.
 
 ## The Plugin API
 
-Each exported function from a plugin, when called, is passed a `PluginAPI` instance it can use to interact with the CLI. Each exported function is used with the following signature:
+Each exported function from a plugin, when called, is passed a `PluginAPI` instance it can use to interact with the CLI.
+Each exported function is used with the following signature:
 
 ```typescript
 /**
@@ -143,9 +196,13 @@ The Plugin API object is a class instance that's shared between hooks, though a 
 
 #### `setStatus(text?: string, type?: "info" | "error" | "fatal" | "success")`
 
-Prints to terminal the current status of the process. This is used for end-user logging. Proper feedback is important, as otherwise the user might think the CLI is stuck, and _will_ abort it early. Internally, Preact CLI uses `ora` to show an animated spinner.
+Prints to terminal the current status of the process. This is used for end-user logging. Proper feedback is important,
+as otherwise the user might think the CLI is stuck, and _will_ abort it early. Internally, Preact CLI uses `ora` to show
+an animated spinner.
 
-When called without arguments, this stops and removes the spinner, persisting the last message into stderr. When called with one argument, the new status text, the spinner updates its status text. When called with two arguments, a logging text and a type identifier, the spinner persists the input text prefixed with an icon corresponding to the type.
+When called without arguments, this stops and removes the spinner, persisting the last message into stderr. When called
+with one argument, the new status text, the spinner updates its status text. When called with two arguments, a logging
+text and a type identifier, the spinner persists the input text prefixed with an icon corresponding to the type.
 
 **Examples**:
 
@@ -159,11 +216,13 @@ api.setStatus("FATAL ERROR", "fatal"); // @preact/cli:plugin:foo ❌ FATAL ERROR
 
 #### `async getRegistry(): Promise<PluginRegistry>`
 
-Returns a promise to the current PluginRegistry instance. See the [PluginRegistry](#the-plugin-registry) reference entry for more info.
+Returns a promise to the current PluginRegistry instance. See the [PluginRegistry](#the-plugin-registry) reference entry
+for more info.
 
 #### `registerCommand(name: string, options?: CommandOptions): Command`
 
-Registers a new command to add to the CLI. This returns a `Command` object from te `commander` package allowing you to personalize the command, add options, and set an action callback.
+Registers a new command to add to the CLI. This returns a `Command` object from te `commander` package allowing you to
+personalize the command, add options, and set an action callback.
 
 **Example**: [The `new` command](packages/cli/src/plugins/new.ts)
 
@@ -175,7 +234,8 @@ type WebpackChainer = (config: webpackChain.Config) => void;
 
 Adds a transformer function for the webpack configuration.
 
-The function doesn't get called immediately; rather all transformer functions are collected and applied during the build step.
+The function doesn't get called immediately; rather all transformer functions are collected and applied during the build
+step.
 
 **Example**:
 
@@ -186,11 +246,14 @@ api.chainWebpack(config => config.plugin("terser").use(TerserPlugin, [terserOpti
 
 #### `async applyTemplate(fileOrFolder: string, context: Record<string, string>, base?: string): Promise<Record<string, string>>`
 
-Renders a file or folder template into the project. Returns an object with relative filenames as keys, and file contents as values, to be passed to `writeFileTree` to write to disk.
+Renders a file or folder template into the project. Returns an object with relative filenames as keys, and file contents
+as values, to be passed to `writeFileTree` to write to disk.
 
 - `fileOrFolder` is the file or folder to render; is relative to `base` or absolute.
-- `context` is an object containing template variables as keys and their content as values. This context gets merged with a default context which contains the environment variables as `env` and the current working directory as `cwd` .
-- `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the project root. When unspecified, it is the project directory.
+- `context` is an object containing template variables as keys and their content as values. This context gets merged
+  with a default context which contains the environment variables as `env` and the current working directory as `cwd` .
+- `base` is the base folder - it maps to the project folder. All output files are applied form this base folder into the
+  project root. When unspecified, it is the project directory.
 
 **Example**:
 
@@ -200,8 +263,10 @@ See [The `build` command](packages/cli/src/plugins/build.ts) for an example of p
 
 Writes the given object to disk, relative to `base` .
 
-- `files` is a dictionary of relative path keys and content values (like the object returned by `applyTemplate` ) to write to disk.
-- `base` is the base directory from which all relatives files are mapped to. If unspecified, it is the project directory. If relative, it is relative to the project directory.
+- `files` is a dictionary of relative path keys and content values (like the object returned by `applyTemplate` ) to
+  write to disk.
+- `base` is the base directory from which all relatives files are mapped to. If unspecified, it is the project
+  directory. If relative, it is relative to the project directory.
 
 **Example**
 
@@ -229,7 +294,8 @@ Returns an array of all defined `webpack-chain` transform functions by the plugi
 
 ### The Plugin Registry
 
-The plugin registry holds instances of plugins for all installed Preact CLI plugins. This allows you to call other plugins' exposed functions to tap into the CLI's pluggable features to extends its functionalities.
+The plugin registry holds instances of plugins for all installed Preact CLI plugins. This allows you to call other
+plugins' exposed functions to tap into the CLI's pluggable features to extends its functionalities.
 
 #### `plugin(name:string|PluginAPI): RegistryPluginActionWrapper`
 
@@ -242,11 +308,15 @@ interface RegistryPluginActionWrapper {
 }
 ```
 
-Return a wrapper object on registry action, but for one plugin. `name` can either be a string object or an existing `PluginAPI` object. In the former case, the plugin will be resolved and loaded. In the later case, the instance is directly used.
+Return a wrapper object on registry action, but for one plugin. `name` can either be a string object or an existing
+`PluginAPI` object. In the former case, the plugin will be resolved and loaded. In the later case, the instance is
+directly used.
 
 #### `hookWebpackChain(config: import("webpack-chain")): void`
 
-Transforms the `config` object using all transform functions defined by plugins in the registry. Note that these functions get registered when running hooks, so if you're writing a new command, you _need_ to take care of calling the appropriate hook.
+Transforms the `config` object using all transform functions defined by plugins in the registry. Note that these
+functions get registered when running hooks, so if you're writing a new command, you _need_ to take care of calling the
+appropriate hook.
 
 #### `async invoke<T>(funcName: string, options?:any): Promise<(T|undefined)[]>`
 

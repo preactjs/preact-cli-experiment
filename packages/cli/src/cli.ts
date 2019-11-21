@@ -1,11 +1,11 @@
-import { resolve } from "path";
+import chalk from "chalk";
 import commander from "commander";
 import _debug from "debug";
+import { resolve } from "path";
 
-import { hookPlugins } from "./utils";
-import PluginAPI from "./api/plugin";
-import chalk from "chalk";
 import { getPackageManager } from "./api/PackageManager";
+import PluginAPI from "./api/plugin";
+import { PluginRegistry } from "./api/registry";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require("../package");
@@ -43,7 +43,7 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 
 	const parsedArgs = program.parseOptions(argv);
 	const opts = program.opts();
-	await hookPlugins(program, opts.cwd).then(registry => {
+	await PluginRegistry.hookPlugins(program, opts.cwd).then(registry => {
 		debug("opts %O", opts);
 		["add", "build", "create", "info", "invoke", "new"].forEach(name => {
 			const importPath = require.resolve(resolve(__dirname, "plugins", name));

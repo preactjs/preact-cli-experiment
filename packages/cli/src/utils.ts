@@ -1,14 +1,9 @@
-import { dirname, resolve, normalize, join } from "path";
-import _glob from "glob";
-import fs, { statSync, exists, stat } from "fs";
-import { promisify } from "util";
-
-import commander from "commander";
-import chalk from "chalk";
+import { ChildProcess, exec, ExecOptions } from "child_process";
 import _debug from "debug";
-
-import { PluginRegistry } from "./api/registry";
-import { ChildProcess, exec, ExecOptions, spawn } from "child_process";
+import fs, { exists, stat, statSync } from "fs";
+import _glob from "glob";
+import { dirname, join, normalize, resolve } from "path";
+import { promisify } from "util";
 
 const debug = _debug("@preact/cli:utils");
 const glob = promisify(_glob);
@@ -32,7 +27,12 @@ export async function getPackageJson(start: string): Promise<{ path: string; con
 export async function execAsync(
 	command: string,
 	options?: ExecOptions
-): Promise<Omit<ChildProcess, "stdout" | "stderr"> & { stdout: string; stderr: string }> {
+): Promise<
+	Omit<ChildProcess, "stdout" | "stderr"> & {
+		stdout: string;
+		stderr: string;
+	}
+> {
 	return new Promise((resolve, reject) => {
 		const cp = exec(command, options, (err, stdout, stderr) => {
 			if (err) reject(Object.assign(err, { stdout: stdout.trim(), stderr: stderr.trim() }));
@@ -130,33 +130,7 @@ export function arrayIs<T>(arr1: T[], arr2: T[]): boolean {
 	return true;
 }
 
-export const hookPlugins: MemoizedFunction<typeof _hookPlugins> = memoize(_hookPlugins);
-
-async function _hookPlugins(program: commander.Command, cwd = process.cwd()) {
-	try {
-		const {
-			path,
-			contents: { dependencies, devDependencies }
-		} = await getPackageJson(cwd);
-
-		const globalPackages = await getGlobalPackages();
-		debug("Global packages: %O", globalPackages);
-		const matchingDependencies = new Set(
-			Object.keys({ ...globalPackages, ...dependencies }).filter(filterPluginDependencies)
-		);
-		if (matchingDependencies.size > 0) {
-			console.warn(chalk.yellow("WARNING") + ": CLI plugins should be added as development dependencies.");
-		}
-		Object.keys(devDependencies)
-			.filter(filterPluginDependencies)
-			.forEach(dep => matchingDependencies.add(dep));
-		return PluginRegistry.fromPlugins(dirname(path), program, [...matchingDependencies.values()]);
-	} catch (err) {
-		return new PluginRegistry();
-	}
-}
-
-const getGlobalPackages = memoizeAsync(_getGlobalPackages);
+export const getGlobalPackages = memoizeAsync(_getGlobalPackages);
 
 async function _getGlobalPackages(): Promise<Record<string, string>> {
 	const globalPath = await execAsync("npm get prefix --global").then(cp => cp.stdout);
@@ -167,8 +141,4 @@ async function _getGlobalPackages(): Promise<Record<string, string>> {
 			return JSON.parse(await readFile(f).then(b => b.toString()));
 		})
 		.reduce(async (obj, p) => Object.assign(obj, { [(await p).name]: (await p).version }), {});
-}
-
-function filterPluginDependencies(dep: string) {
-	return dep.startsWith("preact-cli-plugin-") || dep.startsWith("@preact/cli-plugin-");
 }

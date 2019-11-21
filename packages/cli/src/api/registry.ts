@@ -1,19 +1,24 @@
-import path from "path";
-import { CommanderStatic, Command } from "commander";
+import chalk from "chalk";
+import commander, { Command } from "commander";
 import _debug from "debug";
+import { dirname } from "path";
 import Config from "webpack-chain";
 
+import { getGlobalPackages, getPackageJson, memoizeAsync } from "../utils";
+
 import PluginAPI from "./plugin";
-import chalk from "chalk";
 
 const debug = _debug("@preact/cli:registry");
 
 export class PluginRegistry {
 	private registry: Map<string, PluginAPI>;
 
+	public static hookPlugins = memoizeAsync(PluginRegistry._hookPlugins);
+
 	/**
 	 * Creates a PluginRegistry from a list of packages.
-	 * @param base Base folder which plugins will consider to be the project root.
+	 * @param base Base folder which plugins will consider to be the project
+	 *     root.
 	 * @param commander Commander instance used to register new commands
 	 * @param plugins List of package names to be included in the registry
 	 */
@@ -85,7 +90,8 @@ export class PluginRegistry {
 
 	/**
 	 * Transforms the input webpack configuration by installed plugins
-	 * @param config `webpack-chain` configuraiton to be transformed by the plugins' transformer functions
+	 * @param config `webpack-chain` configuraiton to be transformed by the
+	 *     plugins' transformer functions
 	 */
 	public hookWebpackChain(config: Config) {
 		for (const plugin of this.registry.values()) {
@@ -105,6 +111,33 @@ export class PluginRegistry {
 		return Promise.all(
 			[...this.registry.values()].map(async plugin => this.plugin(plugin).invoke<A>(funcName, options))
 		);
+	}
+
+	private static async _hookPlugins(program: commander.Command, cwd = process.cwd()) {
+		try {
+			const {
+				path,
+				contents: { dependencies, devDependencies }
+			} = await getPackageJson(cwd);
+
+			const globalPackages = await getGlobalPackages();
+			debug("Global packages: %O", globalPackages);
+			const matchingDependencies = new Set(
+				Object.keys({ ...globalPackages, ...dependencies }).filter(this.filterPluginDependencies)
+			);
+			if (matchingDependencies.size > 0) {
+				console.warn(chalk.yellow("WARNING") + ": CLI plugins should be added as development dependencies.");
+			}
+			Object.keys(devDependencies)
+				.filter(this.filterPluginDependencies)
+				.forEach(dep => matchingDependencies.add(dep));
+			return PluginRegistry.fromPlugins(dirname(path), program, [...matchingDependencies.values()]);
+		} catch (err) {
+			return new PluginRegistry();
+		}
+	}
+	private static filterPluginDependencies(dep: string): boolean {
+		return dep.startsWith("preact-cli-plugin-") || dep.startsWith("@preact/cli-plugin-");
 	}
 }
 
