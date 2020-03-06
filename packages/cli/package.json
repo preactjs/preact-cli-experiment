@@ -33,7 +33,7 @@
 		"@preact/async-loader": "^3.0.0-rc.0",
 		"@types/optimize-css-assets-webpack-plugin": "^5.0.0",
 		"autoprefixer": "^9.6.1",
-		"babel-esm-plugin": "^0.6.1",
+		"babel-esm-plugin": "^0.7.1",
 		"babel-loader": "^8.0.6",
 		"babel-plugin-macros": "^2.6.1",
 		"babel-plugin-transform-react-remove-prop-types": "^0.4.24",
