@@ -2114,10 +2114,10 @@
   resolved "https://registry.yarnpkg.com/@types/which/-/which-1.3.1.tgz#7802c380887986ca909008afea4e08025b130f8d"
   integrity sha512-ZrJDWpvg75LTGX4XwuneY9s6bF3OeZcGTpoGh3zDV9ytzcHMFsRrMIaLBRJZQMBoGyKs6unBQfVdrLZiYfb1zQ==
 
-"@types/workbox-webpack-plugin@^4.1.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@types/workbox-webpack-plugin/-/workbox-webpack-plugin-4.1.0.tgz#aa99758f53fbd932dc27fefaf468d9d08d6397d0"
-  integrity sha512-7oZryKIFFefEtIl/maU8kgeKkk7rRrR7SWORNTVfrVhxAn3b6/pcskz6l2TSJrKd6yIghY+IdUWYF1otogNtyw==
+"@types/workbox-webpack-plugin@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@types/workbox-webpack-plugin/-/workbox-webpack-plugin-5.0.0.tgz#5ed921dfa1238893d8e1e6df5e972a036fa98baf"
+  integrity sha512-Ov3e317b+1q5vrHPJAzPFrvDHb9COlkisNU7FJH4r7MWhwxN+xnkJZhtpYxFVexe9RRoJVpz/2WONhXnVPf+NA==
 
 "@typescript-eslint/eslint-plugin@^2.3.1":
   version "2.11.0"
