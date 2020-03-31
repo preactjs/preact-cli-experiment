@@ -39,7 +39,7 @@
 		"typescript": "^3.6.2"
 	},
 	"dependencies": {
-		"chalk": "^2.4.2"
+		"chalk": "^3.0.0"
 	},
 	"ava": {
 		"files": [
