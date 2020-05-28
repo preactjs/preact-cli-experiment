@@ -13,6 +13,7 @@ New CLI for Preact featuring a plugin-based system.
 - [Reference guide](#reference-guide)
 	- [The Plugin API](#the-plugin-api)
 		- [List of available hooks](#list-of-available-hooks)
+			- [`install`](#install)
 			- [`cli`](#cli)
 			- [`build` / `watch`](#build--watch)
 		- [`PluginAPI` instance](#pluginapi-instance)
@@ -92,6 +93,10 @@ function hook(api: PluginAPI, opts: CLIArguments /* Can also include more proper
 ```
 
 ### List of available hooks
+
+#### `install`
+
+Gets called when the plugin is installed via `preact add <plugin>`, or invoked manually with `preact invoke <plugin>`.
 
 #### `cli`
 
