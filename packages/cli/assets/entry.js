@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase, @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* global __webpack_public_path__ */
 
 import * as preact from "preact";
@@ -8,7 +8,7 @@ let hydrate;
 if ("hydrate" in preact) hydrate = preact.hydrate;
 else hydrate = preact.render;
 
-const interopDefault = m => (m && m.default ? m.default : m);
+const interopDefault = (m) => (m && m.default ? m.default : m);
 
 if (process.env.NODE_ENV === "development") {
 	// enable preact devtools
