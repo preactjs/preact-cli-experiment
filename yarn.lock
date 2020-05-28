@@ -2881,13 +2881,13 @@
   resolved "https://registry.yarnpkg.com/@types/tapable/-/tapable-1.0.4.tgz#b4ffc7dc97b498c969b360a41eee247f82616370"
   integrity sha512-78AdXtlhpCHT0K3EytMpn4JNxaf5tbqbLcbIRoQIHzpTIyjpxLQKRoxU55ujBXAtg3Nl2h/XWvfDa9dsMOd0pQ==
 
-"@types/terser-webpack-plugin@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@types/terser-webpack-plugin/-/terser-webpack-plugin-1.2.1.tgz#02c2cacd7769c533cbdac28dd7610c24e46b5c95"
-  integrity sha512-5mzQulZabFsqiLh0PhJdccIKqpd5535UYpZ+Skugz8kPzZdajMMYBRKQSzM1KOkZ42NwLxbZSzQp6xKtaq46Gg==
+"@types/terser-webpack-plugin@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@types/terser-webpack-plugin/-/terser-webpack-plugin-2.2.0.tgz#b1561e3118b9319d80ff65798c345877669b3e12"
+  integrity sha512-ywqEfTm7KdKoX9aYx0zYtiFU1z6IHrIYW9FJqeay2Ea58rTPML1J0hvoztGal2Jow3bkgGKcAmEZNL+8LqUVrA==
   dependencies:
     "@types/webpack" "*"
-    terser "^3.16.1"
+    terser "^4.3.9"
 
 "@types/through@*":
   version "0.0.29"
@@ -3238,15 +3238,15 @@ acorn@^6.0.1, acorn@^6.0.2, acorn@^6.0.7, acorn@^6.2.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.3.0.tgz#0087509119ffa4fc0a0041d1e93a417e68cb856e"
   integrity sha512-/czfa8BwS88b9gWQVhc8eknunSA2DoJpJyTQkhheIf5E48u1N0R4q/YxxsAeqRrmK9TQ/uYfgLDfZo91UlANIA==
 
-acorn@^7.1.1:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.1.1.tgz#e35668de0b402f359de515c5482a1ab9f89a69bf"
-  integrity sha512-add7dgA5ppRPxCFJoAGfMDi7PIBXq1RtGo7BhbLaxwrXPOmw8gq48Y9ozT01hUKy9byMjlR20EJhu5zlkErEkg==
-
 acorn@^7.1.0:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.2.0.tgz#17ea7e40d7c8640ff54a694c889c26f31704effe"
   integrity sha512-apwXVmYVpQ34m/i71vrApRrRKCWQnZZF1+npOD0WV5xZFfwWOmKGQ2RWlfdy9vWITsenisM8M0Qeq8agcFHNiQ==
+
+acorn@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.1.1.tgz#e35668de0b402f359de515c5482a1ab9f89a69bf"
+  integrity sha512-add7dgA5ppRPxCFJoAGfMDi7PIBXq1RtGo7BhbLaxwrXPOmw8gq48Y9ozT01hUKy9byMjlR20EJhu5zlkErEkg==
 
 agent-base@4, agent-base@^4.3.0:
   version "4.3.0"
@@ -5245,7 +5245,7 @@ commander@2.17.x:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.17.1.tgz#bd77ab7de6de94205ceacc72f1716d29f20a77bf"
   integrity sha512-wPMUt6FnH2yzG95SA6mzjQOEKUU3aLaDEmzs1ti+1E9h+CsrZghRlqEM/EJ4KscsQVG8uNN4uVreUeT8+drlgg==
 
-commander@^2.18.0, commander@^2.19.0, commander@^2.20.0:
+commander@^2.18.0, commander@^2.20.0:
   version "2.20.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.0.tgz#d58bb2b5c1ee8f87b0d340027e9e94e222c5a422"
   integrity sha512-7j2y+40w61zy6YC2iRNpUe/NwhNyoXrYpHMrSunaMG64nRnaf96zO/KMQR4OyN/UnE5KLyEBnKHd4aG3rskjpQ==
@@ -13376,7 +13376,7 @@ source-map-support@^0.4.15:
   dependencies:
     source-map "^0.5.6"
 
-source-map-support@^0.5.0, source-map-support@^0.5.13, source-map-support@^0.5.17, source-map-support@~0.5.10, source-map-support@~0.5.12:
+source-map-support@^0.5.0, source-map-support@^0.5.13, source-map-support@^0.5.17, source-map-support@~0.5.12:
   version "0.5.19"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.19.tgz#a98b62f86dcaf4f67399648c085291ab9e8fed61"
   integrity sha512-Wonm7zOCIJzBGQdB+thsPar0kYuCIzYvxZwlBa87yi/Mdjv7Tip2cyVbLj5o0cFPN4EVkuTwb3GDDyUx2DGnGw==
@@ -14073,16 +14073,7 @@ terser-webpack-plugin@^3.0.2:
     terser "^4.6.13"
     webpack-sources "^1.4.3"
 
-terser@^3.16.1:
-  version "3.17.0"
-  resolved "https://registry.yarnpkg.com/terser/-/terser-3.17.0.tgz#f88ffbeda0deb5637f9d24b0da66f4e15ab10cb2"
-  integrity sha512-/FQzzPJmCpjAH9Xvk2paiWrFq+5M6aVOf+2KRbwhByISDX/EujxsK+BAvrhb6H+2rtrLCHK9N01wO014vrIwVQ==
-  dependencies:
-    commander "^2.19.0"
-    source-map "~0.6.1"
-    source-map-support "~0.5.10"
-
-terser@^4.1.2, terser@^4.6.13, terser@^4.6.2:
+terser@^4.1.2, terser@^4.3.9, terser@^4.6.13, terser@^4.6.2:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/terser/-/terser-4.7.0.tgz#15852cf1a08e3256a80428e865a2fa893ffba006"
   integrity sha512-Lfb0RiZcjRDXCC3OSHJpEkxJ9Qeqs6mp2v4jf2MHfy8vGERmVDuvjXdd/EnP5Deme5F2yBRBymKmKHCBg2echw==
