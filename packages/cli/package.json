@@ -79,7 +79,7 @@
 		"webpack-bundle-analyzer": "^3.4.1",
 		"webpack-chain": "^6.0.0",
 		"webpack-dev-server": "^3.8.0",
-		"webpack-fix-style-only-entries": "^0.3.1",
+		"webpack-fix-style-only-entries": "^0.5.0",
 		"webpack-plugin-replace": "^1.2.0",
 		"which": "^2.0.2",
 		"workbox-webpack-plugin": "^4.3.1"
