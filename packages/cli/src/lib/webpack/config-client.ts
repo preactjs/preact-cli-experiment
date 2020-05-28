@@ -21,10 +21,10 @@ import renderHTML from "./render-html";
 export default async function configClient(env: CommonWebpackEnv): Promise<Config> {
 	const transformer = env.isProd ? productionConfig : developmentConfig;
 	return configBase(env)
-		.then(c => clientConfiguration(c, env))
-		.then(c => babelEsmConfig(c, env))
-		.then(c => renderHTML(c, env))
-		.then(c => transformer(c, env));
+		.then((c) => clientConfiguration(c, env))
+		.then((c) => babelEsmConfig(c, env))
+		.then((c) => renderHTML(c, env))
+		.then((c) => transformer(c, env));
 }
 
 function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
@@ -36,11 +36,7 @@ function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 		.add(path.resolve(__dirname, "../../../assets/polyfills"))
 		.end();
 	if (!env.isProd) {
-		config
-			.entry("bundle")
-			.add("webpack-dev-server/client")
-			.add("webpack/hot/dev-server")
-			.end();
+		config.entry("bundle").add("webpack-dev-server/client").add("webpack/hot/dev-server").end();
 	}
 	config.output
 		.path(env.dest)
@@ -48,10 +44,7 @@ function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 		.filename(env.isProd ? "[name].[chunkhash:5].js" : "[name].js")
 		.chunkFilename("[name].chunk.[chunkhash:5].js")
 		.end();
-	config.resolveLoader.alias
-		.set("async", require.resolve("@preact/async-loader"))
-		.end()
-		.end();
+	config.resolveLoader.alias.set("async", require.resolve("@preact/async-loader")).end().end();
 	config.module
 		.rule("components")
 		.test(/\.[jt]sx?$/)
@@ -69,7 +62,7 @@ function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 			formatName(filename: string) {
 				const relative = normalizePath(filename).replace(normalizePath(env.source(".")), "");
 				return cleanFilename(relative);
-			}
+			},
 		})
 		.end();
 	return config
@@ -82,16 +75,16 @@ function clientConfiguration(config: Config, env: CommonWebpackEnv): Config {
 				...(fs.existsSync(env.source("manifest.json"))
 					? [{ from: "manifest.json" }]
 					: [
-						{ from: path.resolve(__dirname, "../../../assets/manifest.json"), to: "manifest.json" },
-						{ from: path.resolve(__dirname, "../../../assets/icon.png"), to: "assets/icon.png" }
-					]),
+							{ from: path.resolve(__dirname, "../../../assets/manifest.json"), to: "manifest.json" },
+							{ from: path.resolve(__dirname, "../../../assets/icon.png"), to: "assets/icon.png" },
+					  ]),
 				existsSync(env.source("assets")) && { from: "assets", to: "assets" },
 				{
 					from: path.resolve(__dirname, "../../../assets/sw-debug.js"),
-					to: "sw-debug.js"
+					to: "sw-debug.js",
 				},
-				existsSync(env.source("static")) && { from: path.resolve(env.source("static")), to: "." }
-			].filter(Boolean)
+				existsSync(env.source("static")) && { from: path.resolve(env.source("static")), to: "." },
+			].filter(Boolean),
 		])
 		.end();
 }
@@ -111,7 +104,7 @@ function babelEsmConfig(config: Config, env: CommonWebpackEnv): Config {
 						}
 						return true;
 					});
-					plugins.forEach(plugin => {
+					plugins.forEach((plugin) => {
 						if (plugin.constructor.name === "DefinePlugin" && plugin.definitions) {
 							for (const definition in plugin.definitions) {
 								if (definition === "process.env.ES_BUILD") {
@@ -122,8 +115,8 @@ function babelEsmConfig(config: Config, env: CommonWebpackEnv): Config {
 							throw new Error("WebpackDefinePlugin found but not `process.env.ES_BUILD`.");
 						}
 					});
-				}
-			}
+				},
+			},
 		]);
 	}
 	return config;
@@ -142,7 +135,7 @@ function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 		.end()
 		.plugin("define")
 		.use(webpack.DefinePlugin, [
-			{ "process.env.ADD_SW": env.sw, "process.env.ES_BUILD": false, "process.env.ESM": false }
+			{ "process.env.ADD_SW": env.sw, "process.env.ES_BUILD": false, "process.env.ESM": false },
 		])
 		.end()
 		.optimization.minimizer("terser")
@@ -154,7 +147,6 @@ function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 					output: { comments: false },
 					mangle: true,
 					compress: {
-						/* eslint-disable @typescript-eslint/camelcase */
 						keep_fargs: false,
 						pure_getters: true,
 						hoist_funs: true,
@@ -164,13 +156,12 @@ function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 							"_possibleConstructorReturn",
 							"Object.freeze",
 							"invariant",
-							"warning"
-						]
-						/* eslint-enable @typescript-eslint/camelcase */
-					}
+							"warning",
+						],
+					},
 				},
-				sourceMap: true
-			}
+				sourceMap: true,
+			},
 		])
 		.end()
 		.minimizer("css")
@@ -183,13 +174,13 @@ function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 				excludedPlugins: ["BabelEsmPlugin", "SWBuilderPlugin"],
 				beforeStartExecution: (plugins: (PluginClass & { definitions: any })[], newConfig: any) => {
 					const babelPlugins: (string | string[])[] = newConfig.plugins;
-					newConfig.plugins = babelPlugins.filter(plugin => {
+					newConfig.plugins = babelPlugins.filter((plugin) => {
 						if (Array.isArray(plugin) && plugin[0].indexOf("fast-async") !== -1) {
 							return false;
 						}
 						return true;
 					});
-					plugins.forEach(plugin => {
+					plugins.forEach((plugin) => {
 						if (plugin.constructor.name === "DefinePlugin" && plugin.definitions) {
 							for (const definition in plugin.definitions) {
 								if (definition === "process.env.ES_BUILD") {
@@ -200,27 +191,27 @@ function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 							throw new Error("WebpackDefinePlugin found but not `process.env.ES_BUILD`.");
 						}
 					});
-				}
-			}
+				},
+			},
 		]);
 		if (env.sw) {
 			config.plugin("inject-manifest").use(InjectManifest, [
 				{
 					swSrc: "sw-esm.js",
 					include: [/^\/?index\.html$/, /\.esm.js$/, /\.css$/, /\.(png|jpg)$/],
-					precacheManifestFilename: "precache-manifest.[manifestHash].esm.js"
-				}
+					precacheManifestFilename: "precache-manifest.[manifestHash].esm.js",
+				},
 			]);
 		}
 	}
 	if (env.sw) {
-		config.plugin("sw-builder").use(SWBuilderPlugin, [config]);
+		config.plugin("sw-builder").use(SWBuilderPlugin, [env]);
 		config.plugin("inject-manifest").use(InjectManifest, [
 			{
 				swSrc: "sw.js",
 				include: [/index\.html$/, /\.js$/, /\.css$/, /\.(png|jpg)$/],
-				exclude: [/\.esm\.js$/]
-			}
+				exclude: [/\.esm\.js$/],
+			},
 		]);
 	}
 
@@ -237,8 +228,8 @@ function productionConfig(config: Config, env: CommonWebpackEnv): Config {
 			{
 				filename: "[path].br[query]",
 				algorithm: "brotliCompress",
-				test: /\.esm\.js$/
-			}
+				test: /\.esm\.js$/,
+			},
 		]);
 	}
 
@@ -257,8 +248,8 @@ function developmentConfig(config: Config, env: CommonWebpackEnv): Config {
 		.use(webpack.DefinePlugin, [
 			{
 				"process.env.ADD_SW": env.sw,
-				"process.env.RHL": "env.rhl" // TODO: Figure out what that is
-			}
+				"process.env.RHL": "env.rhl", // TODO: Figure out what that is
+			},
 		])
 		.end()
 		.set("devServer", {
@@ -280,8 +271,8 @@ function developmentConfig(config: Config, env: CommonWebpackEnv): Config {
 			overlay: false,
 			stats: "minimal",
 			watchOptions: {
-				ignored: [path.resolve(env.cwd, "build"), path.resolve(env.cwd, "node_modules")]
-			}
+				ignored: [path.resolve(env.cwd, "build"), path.resolve(env.cwd, "node_modules")],
+			},
 		});
 }
 

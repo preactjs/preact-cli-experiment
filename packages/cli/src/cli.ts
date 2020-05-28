@@ -19,10 +19,7 @@ export interface CommandObject {
 export async function createProgram(argv?: string[]): Promise<CommandObject> {
 	if (!argv) argv = process.argv;
 	const program = new commander.Command();
-	program
-		.allowUnknownOption(false)
-		.name("preact")
-		.version(version);
+	program.allowUnknownOption(false).name("preact").version(version);
 	program.option("--cwd <cwd>", "Sets working directory", process.env.PREACT_CLI_CWD || process.cwd());
 	program.option(
 		"--pm <pm>",
@@ -42,10 +39,12 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 	});
 
 	const parsedArgs = program.parseOptions(argv);
+	debug("Parsed arguments: %o", parsedArgs);
 	const opts = program.opts();
-	await hookPlugins(program, opts.cwd).then(registry => {
+	debug("Parsed options: %o", opts);
+	await hookPlugins(program, opts.cwd).then((registry) => {
 		debug("opts %O", opts);
-		["add", "build", "create", "info", "invoke", "new"].forEach(name => {
+		["add", "build", "create", "info", "invoke", "new"].forEach((name) => {
 			const importPath = require.resolve(resolve(__dirname, "plugins", name));
 			registry.add(new PluginAPI(opts.cwd, `@preact/cli:${name}`, importPath, program));
 		});
@@ -55,18 +54,7 @@ export async function createProgram(argv?: string[]): Promise<CommandObject> {
 		program,
 		run: () => {
 			debug("Parsing arguments... %o", argv);
-			if (argv.length < 3) {
-				program.help();
-				process.exit(0);
-			} else
-				program
-					.on("command:*", function(this: commander.Command, args) {
-						if (this._execs[args[0]]) return;
-						console.error("Invalid command: " + args[0]);
-						program.help();
-						process.exit(1);
-					})
-					.parse([...parsedArgs.args, ...parsedArgs.unknown]);
-		}
+			program.parse(argv);
+		},
 	};
 }

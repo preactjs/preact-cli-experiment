@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DefinePlugin, Plugin, Compiler, SingleEntryPlugin } from "webpack";
 import BabelEsmPlugin from "babel-esm-plugin";
-import { WebpackEnvironmentBuild } from "./types";
+import { WebpackEnvironmentBuild, CommonWebpackEnv } from "./types";
 import { PluginClass } from "webpack-chain";
 
 export default class SWBuilderPlugin implements Plugin {
@@ -11,14 +11,14 @@ export default class SWBuilderPlugin implements Plugin {
 	src_: any;
 	log: (msg: string, mode?: "info" | "error" | "success" | "fatal") => void;
 
-	constructor(config: WebpackEnvironmentBuild) {
+	constructor(config: CommonWebpackEnv) {
 		const { src, brotli, esm, log } = config;
 		this.brotli_ = brotli;
 		this.esm_ = esm;
 		this.src_ = src;
 		this.log = log;
 	}
-	apply(compiler: Compiler) {
+	apply(compiler: Compiler): void {
 		let swSrc = path.resolve(__dirname, "../sw.js");
 		const exists = fs.existsSync(path.resolve(`${this.src_}/sw.js`));
 		if (exists) {
