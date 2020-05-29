@@ -20,21 +20,21 @@ const EXTENSIONS = ["js", "json"];
 
 const stat = promisify(fs.stat);
 
-export async function build(api: PluginAPI, opts: CLIArguments & BuildArgv) {
+export async function build(api: PluginAPI, opts: CLIArguments & BuildArgv): Promise<void> {
 	return chainCustomConfig(opts, api);
 }
 
-export async function watch(api: PluginAPI, opts: CLIArguments & WatchArgv) {
+export async function watch(api: PluginAPI, opts: CLIArguments & WatchArgv): Promise<void> {
 	return chainCustomConfig(opts, api);
 }
 
-async function chainCustomConfig(opts: any, api: PluginAPI) {
+async function chainCustomConfig(opts: any, api: PluginAPI): Promise<void> {
 	const env = Object.assign({}, opts, { dev: !opts.production });
 	const helpers = new WebpackConfigHelpers(opts.cwd);
 	const configFile = await findConfig(env);
 	if (fs.existsSync(configFile)) {
 		parseConfig(api, getDefault(require("esm")(module)(configFile))).forEach(([t, opts]) => {
-			api.chainWebpack(chain => {
+			api.chainWebpack((chain) => {
 				const isServer = chain.entryPoints.has("ssr-bundle");
 				const transformed = t(
 					chain.toConfig(),
@@ -77,7 +77,7 @@ function parseConfig(api: PluginAPI, config: CustomConfig): [CustomConfigFn, any
 
 						// Detect webpack plugins and return wrapper transforms that inject them
 						if (typeof fn.prototype.apply === "function") {
-							return config => {
+							return (config) => {
 								config.plugins.push(new fn(opts));
 							};
 						}
@@ -137,7 +137,7 @@ function getDefault<T>(val: T | { default: T }): T {
 	return val;
 }
 
-function getRuleName(rule: webpack.RuleSetUse): string {
+/* function getRuleName(rule: webpack.RuleSetUse): string {
 	if (!rule) return "no-loader";
 	if (typeof rule === "string") return rule;
 	if (typeof rule === "function") {
@@ -145,10 +145,10 @@ function getRuleName(rule: webpack.RuleSetUse): string {
 		return getRuleName(rule(data));
 	}
 	if (Array.isArray(rule)) {
-		return rule.map(r => getRuleName(r)).join(", ");
+		return rule.map((r) => getRuleName(r)).join(", ");
 	}
 	if ("loader" in rule) {
 		return rule.loader;
 	}
 	return `${rule}`;
-}
+} */

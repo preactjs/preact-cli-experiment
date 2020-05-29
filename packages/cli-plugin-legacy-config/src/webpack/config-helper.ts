@@ -1,7 +1,7 @@
 import path from "path";
 import webpack from "webpack";
 import fs from "fs";
-import { promisify, isRegExp } from "util";
+import { isRegExp } from "util";
 
 // TODO: Correctly set types for properties
 interface LoaderWrapper {
@@ -17,15 +17,14 @@ interface RuleWrapper {
 }
 
 interface PluginWrapper {
-	plugin: object;
+	plugin: webpack.Plugin;
 	index: number;
 }
 
-const FILE = "preact.config";
-const EXTENSIONS = ["js", "json"];
+interface TypedPluginWrapper<P extends webpack.Plugin> extends PluginWrapper {
+	plugin: P;
+}
 
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
 /**
  * WebpackConfigHelpers
  *
@@ -43,7 +42,7 @@ export default class WebpackConfigHelpers {
 	 * @readonly
 	 * @memberof WebpackConfigHelpers
 	 */
-	get webpack() {
+	get webpack(): typeof webpack {
 		return webpack;
 	}
 
@@ -55,13 +54,9 @@ export default class WebpackConfigHelpers {
 	 * @memberof WebpackConfigHelpers
 	 */
 	getRules(config: webpack.Configuration): RuleWrapper[] {
-		return [
-			...(config.module.preLoaders || []),
-			...(config.module.postLoaders || []),
-			...(config.module.rules || [])
-		].map((rule, index) => ({
+		return [...(config.module.rules || [])].map((rule, index) => ({
 			index,
-			rule
+			rule,
 		}));
 	}
 
@@ -77,7 +72,7 @@ export default class WebpackConfigHelpers {
 			.map(({ rule, index: ruleIndex }) =>
 				mapLoader(rule.loaders)
 					.concat(mapLoader(rule.loader))
-					.map(l => Object.assign(l, { rule, ruleIndex }))
+					.map((l) => Object.assign(l, { rule, ruleIndex }))
 			)
 			.reduce((arr, a) => arr.concat(a), []);
 	}
@@ -103,7 +98,7 @@ export default class WebpackConfigHelpers {
 	 */
 	getRulesByMatchingFile(config: webpack.Configuration, file: string): RuleWrapper[] {
 		const filePath = path.resolve(this._cwd, file);
-		return this.getRules(config).filter(w => conditionMatchesFile(w.rule.test, filePath));
+		return this.getRules(config).filter((w) => conditionMatchesFile(w.rule.test, filePath));
 	}
 
 	/**
@@ -117,7 +112,7 @@ export default class WebpackConfigHelpers {
 	 *
 	 * @memberof WebpackConfigHelpers
 	 */
-	getLoadersByName(config: webpack.Configuration, name: string) {
+	getLoadersByName(config: webpack.Configuration, name: string): webpack.Loader[] {
 		return this.getLoaders(config)
 			.map(({ rule, ruleIndex, loader }) =>
 				Array.isArray(loader)
@@ -125,7 +120,7 @@ export default class WebpackConfigHelpers {
 							rule,
 							ruleIndex,
 							loader,
-							loaderIndex
+							loaderIndex,
 					  }))
 					: [{ rule, ruleIndex, loader: loader, loaderIndex: -1 }]
 			)
@@ -144,9 +139,9 @@ export default class WebpackConfigHelpers {
 	 *
 	 * @memberof WebpackConfigHelpers
 	 */
-	getPluginsByName(config: webpack.Configuration, name: string) {
+	getPluginsByName(config: webpack.Configuration, name: string): PluginWrapper[] {
 		return this.getPlugins(config).filter(
-			w => w.plugin && w.plugin.constructor && w.plugin.constructor.name === name
+			(w) => w.plugin && w.plugin.constructor && w.plugin.constructor.name === name
 		);
 	}
 
@@ -161,8 +156,11 @@ export default class WebpackConfigHelpers {
 	 *
 	 * @memberof WebpackConfigHelpers
 	 */
-	getPluginsByType(config: webpack.Configuration, type: any) {
-		return this.getPlugins(config).filter(w => w.plugin instanceof type);
+	getPluginsByType<P extends webpack.Plugin, T extends new (...args: any) => P>(
+		config: webpack.Configuration,
+		type: T
+	): Array<TypedPluginWrapper<P>> {
+		return this.getPlugins(config).filter(({ plugin }) => plugin instanceof type) as Array<TypedPluginWrapper<P>>;
 	}
 
 	/**
@@ -173,8 +171,8 @@ export default class WebpackConfigHelpers {
 	 *
 	 * @memberof WebpackConfigHelpers
 	 */
-	setHtmlTemplate(config: webpack.Configuration, template: string) {
-		let isPath;
+	setHtmlTemplate(config: webpack.Configuration, template: string): void {
+		let isPath = false;
 		try {
 			fs.statSync(template);
 			isPath = true;
@@ -211,7 +209,7 @@ function conditionMatchesFile(condition: webpack.RuleSetCondition | undefined, f
 	} else if (typeof condition === "function") {
 		return Boolean(condition(file));
 	} else if (Array.isArray(condition)) {
-		return condition.some(c => conditionMatchesFile(c, file));
+		return condition.some((c) => conditionMatchesFile(c, file));
 	}
 	return Object.entries(condition)
 		.map(([key, value]) => {
@@ -223,22 +221,22 @@ function conditionMatchesFile(condition: webpack.RuleSetCondition | undefined, f
 				case "exclude":
 					return !conditionMatchesFile(value, file);
 				case "and":
-					return (value as webpack.RuleSetCondition[]).every(c => conditionMatchesFile(c, file));
+					return (value as webpack.RuleSetCondition[]).every((c) => conditionMatchesFile(c, file));
 				case "or":
-					return (value as webpack.RuleSetCondition[]).some(c => conditionMatchesFile(c, file));
+					return (value as webpack.RuleSetCondition[]).some((c) => conditionMatchesFile(c, file));
 				case "not":
-					return (value as webpack.RuleSetCondition[]).every(c => !conditionMatchesFile(c, file));
+					return (value as webpack.RuleSetCondition[]).every((c) => !conditionMatchesFile(c, file));
 				default:
 					return true;
 			}
 		})
-		.every(b => b);
+		.every((b) => b);
 }
 
 function isRuleSetItem(loader: webpack.RuleSetUse): loader is webpack.RuleSetUseItem {
 	return (
 		typeof loader === "string" ||
 		typeof loader === "function" ||
-		Object.keys(loader).some(k => ["loader", "options", "indent", "query"].includes(k))
+		Object.keys(loader).some((k) => ["loader", "options", "indent", "query"].includes(k))
 	);
 }
