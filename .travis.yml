@@ -1,4 +1,7 @@
-dist: bionic
+os:
+ - windows
+ - linux
+ - osx
 language: node_js
 node_js:
   - lts/*
@@ -10,6 +13,6 @@ cache: yarn
 env:
   - COMMAND=build
   - COMMAND=test:ci
-  - COMMAND=test:integration
+  - COMMAND=test:integration:ci
 
 script: yarn ${COMMAND}
