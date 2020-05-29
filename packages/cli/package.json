@@ -97,7 +97,7 @@
 		"@types/mkdirp": "^0.5.2",
 		"@types/postcss-load-config": "^2.0.0",
 		"@types/require-relative": "^0.8.0",
-		"@types/rimraf": "^2.0.2",
+		"@types/rimraf": "^3.0.0",
 		"@types/stack-trace": "^0.0.29",
 		"@types/terser-webpack-plugin": "^2.2.0",
 		"@types/webpack": "^4.39.1",
