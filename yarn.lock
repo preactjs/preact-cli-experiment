@@ -1869,12 +1869,12 @@
     "@types/node" ">= 8"
 
 "@preact/async-loader@^3.0.0-rc.0":
-  version "3.0.0-rc.9"
-  resolved "https://registry.yarnpkg.com/@preact/async-loader/-/async-loader-3.0.0-rc.9.tgz#fe6a2e763379b7abedcfa6c45d3be28089eb93be"
-  integrity sha512-PjCi/xKyOv1gx/Q0iUX5p0CANMFv9gkimKzg104FNUKmksh5TgKFi1PkQ2Xn+OLgra8N00auAxOt3BMMvcrGgA==
+  version "3.0.0-rc.11"
+  resolved "https://registry.yarnpkg.com/@preact/async-loader/-/async-loader-3.0.0-rc.11.tgz#6c524e8b7afcdb205972141d2c41a0e3fb0f03cd"
+  integrity sha512-EgOfVt0uJYAAqZNMFqQ5F3WyztXLRQDd8NkpL+MUyHJrjk6miIQumE66OzOgpQpcHbPTY9xioNYGPifWerAmcw==
   dependencies:
     kleur "^3.0.3"
-    loader-utils "^1.1.0"
+    loader-utils "^2.0.0"
 
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"
