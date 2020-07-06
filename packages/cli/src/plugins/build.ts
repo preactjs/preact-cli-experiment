@@ -75,23 +75,16 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				await promisify(rimraf)(dest);
 			}
 
-			const registry = await api.getRegistry();
 			const buildOptions = Object.assign({}, argv, opts);
-			await registry.invoke("build", buildOptions);
 
 			if (argv.onlyResolve) {
-				const resolvedConfig = await resolveWebpack(
-					api,
-					buildOptions,
-					config => registry.hookWebpackChain(config),
-					argv.onlyResolve === "server"
-				);
+				const resolvedConfig = await resolveWebpack(api, buildOptions, argv.onlyResolve === "server");
 				process.stdout.write(JSON.stringify(resolvedConfig, avoidCircularReference()));
 				return;
 			}
 
 			try {
-				await runWebpack(api, buildOptions, config => registry.hookWebpackChain(config));
+				await runWebpack(api, buildOptions);
 			} catch (err) {
 				if (api.debug.enabled) throw err;
 				api.setStatus(`Error! ${err}`, "fatal");
@@ -137,7 +130,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			await registry.invoke("watch", watchOptions);
 
 			try {
-				await runWebpack(api, watchOptions, config => registry.hookWebpackChain(config), true);
+				await runWebpack(api, watchOptions, true);
 			} catch (err) {
 				api.setStatus(`Error! ${err}`, "error");
 				if (api.debug.enabled) {

@@ -17,14 +17,13 @@ import { WebpackEnvironment, WebpackTransformer } from "../../types";
 export async function runWebpack(
 	api: PluginAPI,
 	env: WebpackEnvironment<WatchArgv | BuildArgv>,
-	transformer: WebpackTransformer,
 	watch = false
 ) {
 	const extra = await createExtraEnv(api, env, watch);
 	if (watch) {
-		return devBuild(api, Object.assign({ rhl: false }, env as WebpackEnvironment<WatchArgv>, extra), transformer);
+		return devBuild(api, Object.assign({ rhl: false }, env as WebpackEnvironment<WatchArgv>, extra));
 	} else {
-		return prodBuild(api, Object.assign({}, env as WebpackEnvironment<BuildArgv>, extra), transformer);
+		return prodBuild(api, Object.assign({}, env as WebpackEnvironment<BuildArgv>, extra));
 	}
 }
 
@@ -57,9 +56,11 @@ async function createExtraEnv(api: PluginAPI, env: WebpackEnvironment<BuildArgv 
 export async function resolveWebpack(
 	api: PluginAPI,
 	env: WebpackEnvironment<BuildArgv>,
-	transformer: WebpackTransformer,
 	server = false
 ): Promise<webpack.Configuration> {
+	const registry = await api.getRegistry();
+	await registry.invoke("build", env);
+	const transformer = registry.hookWebpackChain.bind(registry);
 	const finalEnv = Object.assign({ rhl: false }, env, await createExtraEnv(api, env, false));
 	if (server) {
 		return Promise.resolve(finalEnv)
@@ -72,8 +73,10 @@ export async function resolveWebpack(
 		.then(c => c.toConfig());
 }
 
-async function devBuild(api: PluginAPI, env: WebpackEnvironmentWatch, transformer: WebpackTransformer) {
-	const config = await configClient(env).then(transformer);
+async function devBuild(api: PluginAPI, env: WebpackEnvironmentWatch) {
+	const registry = await api.getRegistry();
+	await registry.invoke("watch", env);
+	const config = await configClient(env).then(registry.hookWebpackChain.bind(registry));
 	const port = await getPort({ port: [env.port, 3000] });
 
 	const compiler = webpack(config.toConfig());
@@ -128,7 +131,10 @@ async function devBuild(api: PluginAPI, env: WebpackEnvironmentWatch, transforme
 	});
 }
 
-async function prodBuild(api: PluginAPI, env: WebpackEnvironmentBuild, transformer: WebpackTransformer) {
+async function prodBuild(api: PluginAPI, env: WebpackEnvironmentBuild) {
+	const registry = await api.getRegistry();
+	await registry.invoke("build", env);
+	let transformer = registry.hookWebpackChain.bind(registry);
 	const config = await configClient(env)
 		.then(transformer)
 		.then(c => c.toConfig());
