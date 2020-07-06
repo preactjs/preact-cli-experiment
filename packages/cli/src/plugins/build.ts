@@ -55,7 +55,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			// Set new values back into argv object
 			Object.assign(argv, { src, dest });
 			const modules = path.resolve(src, "./node_modules");
-			if (!isDir(modules)) {
+			if (!await isDir(modules)) {
 				api.setStatus(
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
 						pm.getInstallCommand()
@@ -106,7 +106,7 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 			Object.assign(argv, { src, dest });
 
 			const modules = path.resolve(src, "./node_modules");
-			if (!isDir(modules)) {
+			if (!await isDir(modules)) {
 				api.setStatus(
 					`No 'node_modules' folder found! Please run ${chalk.magenta(
 						pm.getInstallCommand()
