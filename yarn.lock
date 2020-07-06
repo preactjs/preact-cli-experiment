@@ -2001,9 +2001,9 @@
     "@types/webpack" "*"
 
 "@types/critters-webpack-plugin@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/critters-webpack-plugin/-/critters-webpack-plugin-2.0.0.tgz#b90623244d3fba6a7e13cb08b41c4710a6a4549c"
-  integrity sha512-+jonqrPvlJBFBhPfqtBlYYCER16MXtwl6ezrtX82NecEhZxX0PY7DRkXOsAzj1MKAXAEptmrcxANg+9xejynjQ==
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@types/critters-webpack-plugin/-/critters-webpack-plugin-2.5.0.tgz#7bd7e849a4fa21d3f7c9a6e209115da0bbfb883c"
+  integrity sha512-wy48savpiKCa8spGtJRiOF+uKHenhMyeqNBk12KauKLekOZI+23qcwViVFYLF/Ca1JojHGYbkzY8vETWZnJ+aw==
   dependencies:
     "@types/webpack" "*"
 
