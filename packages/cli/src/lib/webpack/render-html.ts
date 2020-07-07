@@ -85,7 +85,7 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 	const extraUrls = [];
 	const fullPrerenderPath = path.join(env.cwd, env.prerenderUrls);
 	debug("prerender-urls path %o", fullPrerenderPath);
-	if (isFile(fullPrerenderPath)) {
+	if (await isFile(fullPrerenderPath)) {
 		if (extname(env.prerenderUrls) === "json") {
 			extraUrls.push(...JSON.parse(fullPrerenderPath));
 		} else if (extname(env.prerenderUrls) == "js") {
