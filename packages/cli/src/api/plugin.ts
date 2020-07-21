@@ -1,14 +1,13 @@
-import fs from "fs";
-import path from "path";
-import { Command, CommanderStatic, CommandOptions } from "commander";
+import * as commander from "commander";
 import _debug from "debug";
-import ora from "ora";
-import Config from "webpack-chain";
-import mkdirp from "mkdirp";
+import fs from "fs";
 import inquirer from "inquirer";
-import { PluginRegistry } from "./registry";
+import mkdirp from "mkdirp";
+import ora from "ora";
+import path from "path";
+import Config from "webpack-chain";
 import { renderTemplate } from "../lib/template";
-import { hookPlugins, memoize, memoizeAsync } from "../utils";
+import { hookPlugins } from "../utils";
 
 type WebpackChainer = (webpack: Config) => void;
 
@@ -20,6 +19,7 @@ export default class PluginAPI {
 	private webpackChainers: WebpackChainer[];
 	private spinner?: ora.Ora;
 	private promptModule: inquirer.PromptModule;
+
 	/**
 	 * Initializes a new instance of a Preact CLI plugin
 	 * @param base Base directory of the project, that is the root of it
@@ -31,7 +31,7 @@ export default class PluginAPI {
 		private readonly base: string,
 		public readonly id: string,
 		public readonly importBase: string,
-		private commander: Command
+		private commander: commander.Command
 	) {
 		this.webpackChainers = [];
 		if (debug.extend) this.debug = debug.extend(id);
@@ -101,7 +101,7 @@ export default class PluginAPI {
 	 * @param name Name and usage of the command; is passed to commander.command
 	 * @param options Command options. Is passed to commander.command
 	 */
-	public registerCommand(name: string, options?: CommandOptions): Command {
+	public registerCommand(name: string, options?: commander.CommandOptions): commander.Command {
 		return this.commander.command(name, options);
 	}
 
@@ -109,7 +109,7 @@ export default class PluginAPI {
 	 * Mutate the webpack configuration.
 	 * @param chainer Callback function operating on a Config object from the `webpack-chain` package.
 	 */
-	public chainWebpack(chainer: WebpackChainer) {
+	public chainWebpack(chainer: WebpackChainer): void {
 		this.webpackChainers.push(chainer);
 	}
 
@@ -201,7 +201,7 @@ async function applyTemplateRecursive(
 											return path.resolve(base, "./" + joined);
 										})
 										.map(file => applyTemplateRecursive(base, file, context))
-								)
+									)
 									.then(files => files.reduce((obj, file) => Object.assign(obj, file), {}))
 									.then(resolve)
 									.catch(reject);

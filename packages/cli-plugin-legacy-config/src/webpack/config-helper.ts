@@ -1,7 +1,9 @@
 import path from "path";
 import webpack from "webpack";
 import fs from "fs";
-import { isRegExp } from "util";
+import { promisify, types } from "util";
+
+const isRegExp = types.isRegExp;
 
 // TODO: Correctly set types for properties
 interface LoaderWrapper {

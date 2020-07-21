@@ -44,7 +44,8 @@ export function cli(api: PluginAPI, opts: CLIArguments) {
 				author: {},
 				scripts: addScripts(fullDir, opts.pm),
 				dependencies: {
-					preact: "^10.0.0-rc.1"
+					preact: "^10.4.6",
+					"preact-render-to-string": "^5.1.10",
 				},
 				devDependencies: features.reduce<Record<string, string>>(
 					(obj, p) => Object.assign(obj, { [p]: "latest" }),

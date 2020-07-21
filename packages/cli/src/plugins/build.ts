@@ -18,7 +18,7 @@ export type BuildArgv = CommandArguments<{
 	inlineCss: boolean;
 	onlyResolve?: string;
 	prerender: boolean;
-	prerenderUrls: string;
+	prerenderUrls?: string;
 	preload: boolean;
 	production: boolean;
 	sw: boolean;

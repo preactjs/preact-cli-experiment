@@ -1,16 +1,16 @@
-import fs, { existsSync } from "fs";
-import os, { tmpdir, type } from "os";
+import _debug from "debug";
+import fs from "fs";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import mkdirp from "mkdirp";
+import os from "os";
 import path, { extname } from "path";
 import util from "util";
 import Config from "webpack-chain";
-import _debug from "debug";
-import HtmlWebpackPlugin from "html-webpack-plugin";
-import mkdirp from "mkdirp";
+import { isFile } from "../../utils";
+import { renderTemplate, templateVar } from "../template";
 import createLoadManifest from "./create-load-manifest";
 import prerender from "./prerender";
 import { CommonWebpackEnv } from "./types";
-import { templateVar, renderTemplate } from "../template";
-import { isFile, normalizePath } from "../../utils";
 
 const readFile = util.promisify(fs.readFile);
 const mkdirP = util.promisify(mkdirp);
@@ -83,18 +83,20 @@ export default async function renderHTML(config: Config, env: CommonWebpackEnv):
 	};
 
 	const extraUrls = [];
-	const fullPrerenderPath = path.join(env.cwd, env.prerenderUrls);
-	debug("prerender-urls path %o", fullPrerenderPath);
-	if (await isFile(fullPrerenderPath)) {
-		if (extname(env.prerenderUrls) === "json") {
-			extraUrls.push(...JSON.parse(fullPrerenderPath));
-		} else if (extname(env.prerenderUrls) == "js") {
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const res = require("esm")(fullPrerenderPath);
-			if (typeof res === "function") {
-				extraUrls.push(...(await Promise.resolve(res())));
-			} else {
-				extraUrls.push(...(await Promise.resolve(res)));
+	if (typeof env.prerenderUrls !== "undefined") {
+		const fullPrerenderPath = path.join(env.cwd, env.prerenderUrls);
+		debug("prerender-urls path %o", fullPrerenderPath);
+		if (await isFile(fullPrerenderPath)) {
+			if (extname(env.prerenderUrls) === "json") {
+				extraUrls.push(...JSON.parse(fullPrerenderPath));
+			} else if (extname(env.prerenderUrls) == "js") {
+				// eslint-disable-next-line @typescript-eslint/no-var-requires
+				const res = require("esm")(fullPrerenderPath);
+				if (typeof res === "function") {
+					extraUrls.push(...(await Promise.resolve(res())));
+				} else {
+					extraUrls.push(...(await Promise.resolve(res)));
+				}
 			}
 		}
 	}

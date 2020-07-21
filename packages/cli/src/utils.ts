@@ -14,6 +14,7 @@ const debug = _debug("@preact/cli:utils");
 const glob = promisify(_glob);
 const readFile = promisify(fs.readFile);
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type MemoizedFunction<F extends Function> = F & { deleteCache: () => void };
 export type PromiseValue<P extends Promise<any>> = P extends Promise<infer V> ? V : unknown;
 

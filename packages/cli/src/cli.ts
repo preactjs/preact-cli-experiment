@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import commander from "commander";
+import * as commander from "commander";
 import _debug from "debug";
 
 import { hookPlugins } from "./utils";
