@@ -37,7 +37,7 @@
 	},
 	"dependencies": {
 		"fork-ts-checker-webpack-plugin": "^4.1.2",
-		"ts-loader": "^6.1.0",
+		"ts-loader": "^9.2.1",
 		"typings-for-css-modules-loader": "^1.7.0"
 	},
 	"peerDependencies": {
